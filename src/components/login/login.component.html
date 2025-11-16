@@ -1,0 +1,56 @@
+<div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    <div class="text-center mb-10">
+      <h1 class="text-5xl font-bold text-white mb-2">👑 Prime Payroll</h1>
+      <p class="text-xl text-gray-400">Please sign in to your account</p>
+    </div>
+
+    <div class="bg-brand-secondary rounded-xl shadow-2xl p-8">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="space-y-6">
+          <div>
+            <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
+            <input 
+              id="username"
+              formControlName="username"
+              type="text" 
+              class="mt-1 bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none"
+              placeholder="e.g., admin">
+          </div>
+          <div>
+            <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
+            <input 
+              id="password"
+              formControlName="password"
+              type="password"
+              class="mt-1 bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none"
+              placeholder="••••••••">
+          </div>
+        </div>
+
+        @if (loginError(); as error) {
+          <div class="mt-4 text-center bg-red-900/50 border border-brand-accent text-red-300 p-3 rounded-md">
+            {{ error }}
+          </div>
+        }
+
+        <div class="mt-8">
+          <button 
+            type="submit" 
+            [disabled]="loginForm.invalid || isLoading()"
+            class="w-full bg-brand-info hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center">
+            @if (isLoading()) {
+              <span class="animate-spin mr-2">⏳</span>
+              <span>Authenticating...</span>
+            } @else {
+               <span>Login</span>
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+     <div class="text-center mt-6">
+        <p class="text-sm text-gray-500">Contact administrator for account issues. (Hint: admin/admin)</p>
+    </div>
+  </div>
+</div>

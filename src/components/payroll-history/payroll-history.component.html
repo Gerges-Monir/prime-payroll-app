@@ -1,0 +1,105 @@
+<div class="animate-fade-in">
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold">📚 Payroll History</h2>
+    <p class="text-gray-400">Review, finalize, and manage all payroll reports.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Payroll List -->
+    <div class="lg:col-span-1">
+      <h3 class="text-xl font-bold mb-4">Saved Periods</h3>
+      <div class="bg-gray-800 p-2 rounded-lg max-h-[600px] overflow-y-auto">
+        <div class="space-y-2">
+          @for (payroll of publishedPayrolls(); track payroll.id) {
+            <button 
+              (click)="selectPayroll(payroll.id)"
+              [class]="(selectedPayrollId() === payroll.id ? 'bg-brand-info text-white ring-2 ring-blue-400' : 'bg-gray-700 hover:bg-gray-600 text-gray-300') + ' w-full text-left p-4 rounded-lg transition-colors'">
+              <div class="flex justify-between items-start">
+                  <div>
+                    <p class="font-semibold">
+                      {{ payroll.startDate | date:'mediumDate' }} - {{ payroll.endDate | date:'mediumDate' }}
+                    </p>
+                    <p class="text-sm opacity-70">Saved on: {{ payroll.publishedDate | date:'shortDate' }}</p>
+                  </div>
+                  <span 
+                    class="text-xs font-bold uppercase px-2 py-1 rounded-full"
+                    [class.bg-amber-400]="payroll.status === 'draft'"
+                    [class.text-amber-900]="payroll.status === 'draft'"
+                    [class.bg-green-400]="payroll.status === 'finalized'"
+                    [class.text-green-900]="payroll.status === 'finalized'">
+                    {{ payroll.status }}
+                  </span>
+              </div>
+            </button>
+          } @empty {
+            <div class="p-8 text-center text-gray-500">
+              <p>No payrolls have been created yet.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Payroll Details -->
+    <div class="lg:col-span-2">
+       @if (selectedPayroll(); as payroll) {
+        <div class="animate-fade-in-fast">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
+            <h3 class="text-xl font-bold">Report for {{ payroll.startDate | date:'MMM d' }} - {{ payroll.endDate | date:'MMM d, y' }}</h3>
+            <!-- Action Buttons -->
+            <div class="flex gap-2 flex-shrink-0">
+              @if (payroll.status === 'draft') {
+                <button (click)="finalize(payroll.id, $event)" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>✅</span> Finalize</button>
+                <button (click)="delete(payroll.id, $event)" class="bg-brand-accent hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>🗑️</span> Delete Draft</button>
+              } @else {
+                <button (click)="unfinalize(payroll.id, $event)" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>✏️</span> Un-finalize</button>
+              }
+            </div>
+          </div>
+          <div class="bg-gray-800 p-2 rounded-lg">
+             <div class="max-h-[600px] overflow-y-auto">
+                <table class="w-full text-left">
+                  <thead class="sticky top-0 bg-gray-900 z-10">
+                    <tr>
+                      <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Jobs</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Adjustments</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Final Payout</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-700">
+                    @for (tech of payroll.reportData; track tech.id) {
+                      @let adjTotal = getAdjustmentsTotal(tech);
+                      <tr class="hover:bg-gray-700">
+                        <td class="p-4">
+                            <p class="font-medium text-white">{{ tech.name }}</p>
+                            <p class="text-sm text-gray-400">#{{ tech.techId }}</p>
+                        </td>
+                        <td class="p-4 text-right font-mono text-white">{{ tech.totalJobs }}</td>
+                        <td 
+                          class="p-4 text-right font-mono"
+                          [class.text-gray-500]="adjTotal === 0"
+                          [class.text-green-400]="adjTotal > 0"
+                          [class.text-red-400]="adjTotal < 0">
+                          {{ adjTotal | currency }}
+                        </td>
+                        <td class="p-4 text-right font-mono text-brand-success font-bold">{{ tech.totalEarnings | currency }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+             </div>
+          </div>
+        </div>
+       } @else {
+        <div class="h-full flex items-center justify-center text-center text-gray-500 bg-gray-800 rounded-lg">
+          <div>
+            <div class="text-6xl mb-4">👈</div>
+            <h2 class="text-3xl font-bold">Select a Payroll Period</h2>
+            <p class="mt-2 text-lg">Choose a saved report from the list to view its details.</p>
+          </div>
+        </div>
+       }
+    </div>
+  </div>
+</div>

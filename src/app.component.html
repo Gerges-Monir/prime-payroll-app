@@ -1,0 +1,15 @@
+@if (currentUser(); as user) {
+  @switch (user.role) {
+    @case ('admin') {
+      <app-admin-dashboard />
+    }
+    @case ('sub-admin') {
+      <app-sub-admin-dashboard />
+    }
+    @case ('employee') {
+      <app-employee-dashboard />
+    }
+  }
+} @else {
+  <app-login />
+}

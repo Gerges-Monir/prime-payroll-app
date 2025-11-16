@@ -1,0 +1,78 @@
+<div>
+  <div class="flex justify-between items-start mb-4">
+    <div>
+        <h2 class="text-2xl font-bold">{{ title() }}</h2>
+        <p class="text-gray-400 mt-1">{{ description() }}</p>
+    </div>
+    <button (click)="clearJobs()" class="bg-brand-accent hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
+      <span>🗑️</span>
+      <span>Clear All Jobs</span>
+    </button>
+  </div>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <!-- Upload Area -->
+    <div>
+      <div class="bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-brand-info transition-colors duration-300" (click)="fileInput.click()">
+        <div class="text-6xl mb-4">📄</div>
+        <h3 class="text-xl font-semibold text-white">Click to browse or drop file here</h3>
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx" class="hidden">
+      </div>
+      @if (selectedFile(); as file) {
+        <div class="mt-4 bg-gray-700 p-3 rounded-lg flex justify-between items-center">
+          <span class="text-white">Selected: <span class="font-semibold">{{ file.name }}</span></span>
+          <button (click)="uploadFile()" [disabled]="uploadStatus() === 'uploading'" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed">
+             {{ uploadStatus() === 'uploading' ? 'Uploading...' : 'Upload & Add Jobs' }}
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Status & Processed Data -->
+    <div>
+      <h3 class="text-xl font-bold mb-4">📊 Processing Status</h3>
+      <div class="bg-gray-800 p-4 rounded-lg text-gray-400 min-h-[80px] flex items-center">
+        @if (uploadStatus() === 'idle') {
+          <span>Ready for file upload. Processed data will appear below.</span>
+        }
+        @if (uploadStatus() === 'uploading') {
+          <div class="text-white flex items-center gap-2">
+            <span class="animate-spin">⏳</span>
+            <span>{{ uploadMessage() }}</span>
+          </div>
+        }
+        @if (uploadStatus() === 'success') {
+          <div class="text-green-300">✅ {{ uploadMessage() }}</div>
+        }
+        @if (uploadStatus() === 'error') {
+          <div class="text-red-400">❌ {{ uploadMessage() }}</div>
+        }
+      </div>
+
+      <div class="mt-6">
+        <h3 class="text-xl font-bold mb-4">👨‍🔧 Current Payroll Summary</h3>
+        <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
+          @for (tech of processedTechnicians(); track tech.id) {
+            @if(tech.totalJobs > 0 || tech.adjustments.length > 0) {
+              <div class="bg-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-700 transition-colors">
+                  <div class="flex justify-between items-center">
+                    <p class="font-bold text-lg text-white">{{ tech.name }} <span class="text-sm text-gray-400">#{{ tech.techId }}</span></p>
+                    <span class="text-brand-success font-semibold">{{ tech.totalEarnings | currency }}</span>
+                  </div>
+                  <div class="text-sm text-gray-400 grid grid-cols-2 md:grid-cols-4 gap-x-4 mt-2">
+                     <span>Jobs: {{ tech.totalJobs }}</span>
+                     <span>Revenue: {{ tech.totalRevenue | currency }}</span>
+                     <span>Avg/Job: {{ tech.avgPerJob | currency }}</span>
+                     <span>Co. Revenue: {{ tech.companyRevenue | currency }}</span>
+                  </div>
+              </div>
+            }
+          } @empty {
+            <div class="text-center text-gray-500 py-8">
+              <p>No jobs have been uploaded for the current period.</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

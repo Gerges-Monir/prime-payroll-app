@@ -1,0 +1,11 @@
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  @for (stat of stats(); track stat.label) {
+    <div [class]="'p-6 rounded-xl shadow-lg flex items-center gap-4 ' + stat.color">
+      <div class="text-4xl">{{ stat.icon }}</div>
+      <div>
+        <div class="text-3xl font-bold">{{ stat.value }}</div>
+        <div class="text-sm opacity-80">{{ stat.label }}</div>
+      </div>
+    </div>
+  }
+</div>

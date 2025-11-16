@@ -1,0 +1,210 @@
+<div class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <app-dashboard-header
+      title="📋 Sub-Admin Dashboard"
+      [subtitle]="'Managing your team, ' + (currentUser()?.name || '')"
+      (logout)="logout()">
+    </app-dashboard-header>
+
+    <!-- Stats Grid -->
+    <app-stat-cards [stats]="teamStats()"></app-stat-cards>
+
+    <!-- Tabs Navigation -->
+    <div class="mb-6">
+      <div class="border-b border-gray-700">
+        <nav class="-mb-px flex space-x-4 overflow-x-auto" aria-label="Tabs">
+          @for (tab of tabs; track tab.id) {
+            <button
+              (click)="selectTab(tab.id)"
+              [class]="(activeTab() === tab.id ? 'border-brand-info text-brand-info' : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500') + ' whitespace-nowrap py-4 px-3 border-b-2 font-medium text-base transition-colors duration-200 flex items-center gap-2'">
+              {{ tab.name }}
+            </button>
+          }
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="bg-brand-secondary p-6 rounded-lg shadow-2xl min-h-[500px]">
+      
+      <!-- Team Report Tab -->
+      @if(activeTab() === 'report') {
+        <div class="animate-fade-in">
+           <div class="flex justify-between items-center mb-4">
+             <h3 class="text-2xl font-bold">👨‍🔧 Team Payroll Report</h3>
+             <button (click)="downloadExcel()" [disabled]="teamProcessedTechnicians().length === 0" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 disabled:bg-gray-500">
+               <span>📄</span> Download Excel
+             </button>
+           </div>
+          <div class="space-y-3 max-h-[600px] overflow-y-auto pr-2">
+            @for (tech of teamProcessedTechnicians(); track tech.id) {
+              <div class="bg-gray-800 p-4 rounded-lg shadow-md hover:bg-gray-700 transition-colors">
+                  <div class="flex justify-between items-center">
+                    <p class="font-bold text-lg text-white">{{ tech.name }} <span class="text-sm text-gray-400">#{{ tech.techId }}</span></p>
+                    <span class="text-brand-success font-semibold">{{ tech.totalEarnings | currency }}</span>
+                  </div>
+                  <div class="text-sm text-gray-400 grid grid-cols-2 md:grid-cols-4 gap-x-4 mt-2">
+                     <span>Jobs: {{ tech.totalJobs }}</span>
+                     <span>Revenue: {{ tech.totalRevenue | currency }}</span>
+                     <span>Avg/Job: {{ tech.avgPerJob | currency }}</span>
+                     <span>Co. Revenue: {{ tech.companyRevenue | currency }}</span>
+                  </div>
+              </div>
+            } @empty {
+              <div class="text-center text-gray-500 py-16">
+                <div class="text-5xl">📄</div>
+                <h3 class="mt-4 text-xl font-semibold">No Data Processed Yet</h3>
+                <p class="mt-1">When an administrator uploads a file, the processed data for your team will appear here.</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Manage Jobs Tab -->
+      @if(activeTab() === 'jobs') {
+        <div class="animate-fade-in">
+          <h2 class="text-2xl font-bold mb-4">🔧 Manage Team Jobs</h2>
+          <div class="bg-gray-800 p-2 rounded-lg">
+            <div class="max-h-[600px] overflow-y-auto">
+              <table class="w-full text-left">
+                <thead class="sticky top-0 bg-gray-900 z-10">
+                  <tr>
+                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
+                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Date</th>
+                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Task Code</th>
+                    <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Revenue</th>
+                    <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-700">
+                  @for (job of teamJobs(); track job.id) {
+                    <tr class="hover:bg-gray-700">
+                      <td class="p-4 font-medium text-white">{{ getTechName(job.techId) }} (#{{ job.techId }})</td>
+                      <td class="p-4 text-gray-300">{{ job.date | date:'shortDate' }}</td>
+                      <td class="p-4 text-gray-300">{{ job.taskCode }}</td>
+                      <td class="p-4 font-mono text-right text-white">{{ job.revenue | currency }}</td>
+                      <td class="p-4 text-center">
+                        <button (click)="openEditJobModal(job)" class="bg-brand-info hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-md text-sm">Edit</button>
+                        <button (click)="deleteJob(job.id)" class="ml-2 bg-brand-accent hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm">Delete</button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="text-center text-gray-500 py-16">
+                        <h3 class="text-xl font-semibold">No Jobs to Display</h3>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Team History Tab -->
+      @if(activeTab() === 'teamHistory') {
+        <div class="animate-fade-in">
+          <div class="mb-6">
+            <h2 class="text-2xl font-bold">📚 Team Payroll History</h2>
+            <p class="text-gray-400">Review finalized payroll reports for your team.</p>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Payroll List -->
+            <div class="lg:col-span-1">
+              <h3 class="text-xl font-bold mb-4">Finalized Periods</h3>
+              <div class="bg-gray-800 p-2 rounded-lg max-h-[600px] overflow-y-auto">
+                <div class="space-y-2">
+                  @for (payroll of teamPayrollHistory(); track payroll.id) {
+                    <button 
+                      (click)="selectTeamPayroll(payroll.id)"
+                      [class]="(selectedTeamPayrollId() === payroll.id ? 'bg-brand-info text-white ring-2 ring-blue-400' : 'bg-gray-700 hover:bg-gray-600 text-gray-300') + ' w-full text-left p-4 rounded-lg transition-colors'">
+                      <p class="font-semibold">{{ payroll.startDate | date:'mediumDate' }} - {{ payroll.endDate | date:'mediumDate' }}</p>
+                      <p class="text-sm opacity-70">Published: {{ payroll.publishedDate | date:'shortDate' }}</p>
+                    </button>
+                  } @empty {
+                    <div class="p-8 text-center text-gray-500">
+                      <p>No finalized payroll history for your team yet.</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+            <!-- Payroll Details -->
+            <div class="lg:col-span-2">
+               @if (selectedTeamPayroll(); as payroll) {
+                <div class="animate-fade-in-fast">
+                  <h3 class="text-xl font-bold mb-4">Report for {{ payroll.startDate | date:'MMM d' }} - {{ payroll.endDate | date:'MMM d, y' }}</h3>
+                  <div class="bg-gray-800 p-2 rounded-lg">
+                     <div class="max-h-[600px] overflow-y-auto">
+                        <table class="w-full text-left">
+                          <thead class="sticky top-0 bg-gray-900 z-10">
+                            <tr>
+                              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
+                              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Jobs</th>
+                              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Adjustments</th>
+                              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Final Payout</th>
+                            </tr>
+                          </thead>
+                          <tbody class="divide-y divide-gray-700">
+                            @for (tech of payroll.reportData; track tech.id) {
+                              @let adjTotal = getAdjustmentsTotal(tech);
+                              <tr class="hover:bg-gray-700">
+                                <td class="p-4">
+                                    <p class="font-medium text-white">{{ tech.name }}</p>
+                                    <p class="text-sm text-gray-400">#{{ tech.techId }}</p>
+                                </td>
+                                <td class="p-4 text-right font-mono text-white">{{ tech.totalJobs }}</td>
+                                <td 
+                                  class="p-4 text-right font-mono"
+                                  [class.text-gray-500]="adjTotal === 0"
+                                  [class.text-green-400]="adjTotal > 0"
+                                  [class.text-red-400]="adjTotal < 0">
+                                  {{ adjTotal | currency }}
+                                </td>
+                                <td class="p-4 text-right font-mono text-brand-success font-bold">{{ tech.totalEarnings | currency }}</td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                     </div>
+                  </div>
+                </div>
+               } @else {
+                <div class="h-full flex items-center justify-center text-center text-gray-500 bg-gray-800 rounded-lg">
+                  <div>
+                    <div class="text-6xl mb-4">👈</div>
+                    <h2 class="text-3xl font-bold">Select a Payroll Period</h2>
+                    <p class="mt-2 text-lg">Choose a finalized report from the list to view details for your team.</p>
+                  </div>
+                </div>
+               }
+            </div>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>
+
+<!-- Edit Job Modal -->
+@if (showJobModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
+    <div class="bg-brand-secondary rounded-lg shadow-2xl p-8 w-full max-w-md m-4">
+      <h2 class="text-2xl font-bold mb-6 text-white">Edit Job for {{ getTechName(jobToEdit()?.techId || '') }}</h2>
+      <form [formGroup]="jobForm" (ngSubmit)="saveJob()">
+        <div class="space-y-4">
+            <input formControlName="date" type="date" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+            <input formControlName="taskCode" placeholder="Task Code" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+            <input formControlName="revenue" type="number" step="0.01" placeholder="Revenue" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+          <button type="button" (click)="closeJobModal()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancel</button>
+          <button type="submit" [disabled]="jobForm.invalid" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500">Save Job</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
