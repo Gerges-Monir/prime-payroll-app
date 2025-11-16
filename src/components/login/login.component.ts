@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
+import { SettingsService } from '../../services/settings.service';
 
 @Component({
   selector: 'app-login',
@@ -12,8 +13,10 @@ import { AuthService } from '../../services/auth.service';
 })
 export class LoginComponent {
   private authService = inject(AuthService);
+  private settingsService = inject(SettingsService);
   private fb: FormBuilder;
 
+  logo = computed(() => this.settingsService.settings().logoUrl);
   loginForm: FormGroup;
   loginError = signal<string | null>(null);
   isLoading = signal(false);

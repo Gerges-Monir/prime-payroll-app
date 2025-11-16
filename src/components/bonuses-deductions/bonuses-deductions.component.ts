@@ -1,8 +1,9 @@
 import { Component, ChangeDetectionStrategy, inject, signal, WritableSignal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { MockDataService } from '../../services/mock-data.service';
+import { DatabaseService } from '../../services/database.service';
 import { User, Loan, RecurringAdjustment, Adjustment } from '../../models/payroll.model';
+import { NotificationService } from '../../services/notification.service';
 
 type AdjustmentTab = 'oneTime' | 'loans' | 'recurring';
 type ModalType = 'oneTime' | 'loan' | 'recurring' | null;
@@ -15,15 +16,18 @@ type ModalType = 'oneTime' | 'loan' | 'recurring' | null;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BonusesDeductionsComponent {
-  private dataService = inject(MockDataService);
+  private dataService = inject(DatabaseService);
+  private notificationService = inject(NotificationService);
   private fb: FormBuilder;
 
   users = computed(() => this.dataService.users().filter(u => u.role === 'employee' || u.role === 'sub-admin'));
   loans = this.dataService.loans;
   recurringAdjustments = this.dataService.recurringAdjustments;
+  unprocessedAdjustments = this.dataService.adjustments;
   
   activeTab = signal<AdjustmentTab>('oneTime');
   showModal = signal<ModalType>(null);
+  isSaving = signal(false);
   
   oneTimeForm: FormGroup;
   loanForm: FormGroup;
@@ -69,61 +73,88 @@ export class BonusesDeductionsComponent {
     this.showModal.set(null);
   }
 
-  saveOneTime() {
+  async saveOneTime() {
     if (this.oneTimeForm.invalid) return;
+    this.isSaving.set(true);
     const { techId, type, description, amount, date } = this.oneTimeForm.value;
     const finalAmount = type === 'Bonus' ? Math.abs(parseFloat(amount)) : -Math.abs(parseFloat(amount));
     
-    const newAdjustment: Omit<Adjustment, 'id'> = {
-      techId,
-      date,
-      type,
-      description,
-      amount: finalAmount,
-    };
-
-    this.dataService.addOneTimeAdjustment(newAdjustment);
-    this.closeModal();
+    try {
+      await this.dataService.addOneTimeAdjustment({ techId, date, type, description, amount: finalAmount });
+      this.notificationService.showSuccess(`Adjustment added for ${this.getTechName(techId)}.`);
+      this.closeModal();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.notificationService.showError(msg);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
 
-  saveLoan() {
+  async deleteOneTimeAdjustment(adjustmentId: number): Promise<void> {
+    if (confirm('Are you sure you want to delete this adjustment?')) {
+      await this.dataService.deleteAdjustment(adjustmentId);
+      this.notificationService.showSuccess('Adjustment deleted.');
+    }
+  }
+
+  async saveLoan() {
     if (this.loanForm.invalid) return;
+    this.isSaving.set(true);
     const { techId, description, totalAmount, weeklyDeduction } = this.loanForm.value;
     if (parseFloat(weeklyDeduction) > parseFloat(totalAmount)) {
-      alert('Weekly deduction cannot be greater than the total loan amount.');
+      this.notificationService.showError('Weekly deduction cannot be greater than the total loan amount.');
+      this.isSaving.set(false);
       return;
     }
-    const newLoan: Omit<Loan, 'id'> = {
-      techId,
-      description,
-      totalAmount: parseFloat(totalAmount),
-      remainingAmount: parseFloat(totalAmount),
-      weeklyDeduction: parseFloat(weeklyDeduction),
-      isActive: true,
-    };
-    this.dataService.addLoan(newLoan);
-    this.closeModal();
+    
+    try {
+      await this.dataService.addLoan({
+        techId, description,
+        totalAmount: parseFloat(totalAmount),
+        remainingAmount: parseFloat(totalAmount),
+        weeklyDeduction: parseFloat(weeklyDeduction),
+        isActive: true,
+      });
+      this.notificationService.showSuccess(`Loan added for ${this.getTechName(techId)}.`);
+      this.closeModal();
+    } catch (e) {
+       const msg = e instanceof Error ? e.message : String(e);
+       this.notificationService.showError(msg);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
 
-  saveRecurring() {
+  async saveRecurring() {
     if (this.recurringForm.invalid) return;
+    this.isSaving.set(true);
     const { techId, description, weeklyAmount } = this.recurringForm.value;
-    const newRecurring: Omit<RecurringAdjustment, 'id'> = {
-      techId,
-      description,
-      weeklyAmount: -Math.abs(parseFloat(weeklyAmount)), // ensure it's a deduction
-      isActive: true,
-    };
-    this.dataService.addRecurringAdjustment(newRecurring);
-    this.closeModal();
+    
+    try {
+      await this.dataService.addRecurringAdjustment({
+        techId, description,
+        weeklyAmount: -Math.abs(parseFloat(weeklyAmount)),
+        isActive: true,
+      });
+      this.notificationService.showSuccess(`Recurring deduction added for ${this.getTechName(techId)}.`);
+      this.closeModal();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.notificationService.showError(msg);
+    } finally {
+      this.isSaving.set(false);
+    }
   }
   
-  toggleLoanStatus(loan: Loan) {
-    this.dataService.updateLoan({ ...loan, isActive: !loan.isActive });
+  async toggleLoanStatus(loan: Loan) {
+    await this.dataService.updateLoan({ ...loan, isActive: !loan.isActive });
+    this.notificationService.showSuccess(`Loan for ${this.getTechName(loan.techId)} is now ${!loan.isActive ? 'Active' : 'Paused'}.`);
   }
   
-  toggleRecurringStatus(adj: RecurringAdjustment) {
-    this.dataService.updateRecurringAdjustment({ ...adj, isActive: !adj.isActive });
+  async toggleRecurringStatus(adj: RecurringAdjustment) {
+    await this.dataService.updateRecurringAdjustment({ ...adj, isActive: !adj.isActive });
+    this.notificationService.showSuccess(`Deduction for ${this.getTechName(adj.techId)} is now ${!adj.isActive ? 'Active' : 'Paused'}.`);
   }
 
   getTechName(techId: string): string {

@@ -1,166 +1,243 @@
-<div class="min-h-screen bg-gray-900 text-gray-100 p-4 sm:p-6 lg:p-8">
-  <div class="max-w-7xl mx-auto">
-    <!-- Header -->
-    <app-dashboard-header 
-      title="👑 Prime Payroll Dashboard"
-      subtitle="Welcome back, Administrator."
-      (logout)="logout()">
-    </app-dashboard-header>
+<div class="flex min-h-screen bg-brand-background font-sans">
+  <app-sidebar [tabs]="tabs" [activeTab]="activeTab()" (tabSelected)="selectTab($event)" (logout)="logout()"></app-sidebar>
+  
+  <div class="flex-1 flex flex-col md:ml-64 transition-all duration-300">
+    <main class="flex-1 p-6 sm:p-8">
+      <!-- Header -->
+      <app-dashboard-header 
+        pageTitle="Admin Dashboard"
+        description="Manage your payroll system">
+      </app-dashboard-header>
 
-    <!-- Stats Grid -->
-    <app-stat-cards [stats]="stats()"></app-stat-cards>
+      <!-- Main Content Area -->
+      <div class="mt-6">
+        @if (activeTab() === 'dashboard') {
+          <div class="space-y-8 animate-fade-in">
+             <!-- Stats Grid -->
+            <app-stat-cards [stats]="stats()"></app-stat-cards>
 
-    <!-- Tabs Navigation -->
-    <div class="mb-6">
-      <div class="border-b border-gray-700">
-        <nav class="-mb-px flex space-x-2 sm:space-x-4 overflow-x-auto" aria-label="Tabs">
-          @for (tab of tabs; track tab.id) {
-            <button
-              (click)="selectTab(tab.id)"
-              [class]="(activeTab() === tab.id ? 'border-brand-info text-brand-info' : 'border-transparent text-gray-400 hover:text-white hover:border-gray-500') + ' whitespace-nowrap py-4 px-2 sm:px-3 border-b-2 font-medium text-sm sm:text-base transition-colors duration-200 flex items-center gap-2'">
-              {{ tab.icon }} {{ tab.name }}
-            </button>
-          }
-        </nav>
-      </div>
-    </div>
+            <!-- Quick Links -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Manage Employees Card -->
+              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
+                <div class="bg-blue-100 text-blue-800 p-3 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 006-6v-1a6 6 0 00-9-5.197M12 10.25a4 4 0 110-5.292" /></svg>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="font-semibold text-lg text-brand-text-primary">Manage Employees</h3>
+                  <p class="text-sm text-brand-text-secondary mt-1">Add, edit, or remove employee and sub-admin accounts.</p>
+                </div>
+                <button (click)="selectTab('users')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                  Go to Employees <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </button>
+              </div>
 
-    <!-- Tab Content -->
-    <main class="bg-brand-secondary p-6 rounded-lg shadow-2xl min-h-[500px]">
-      
-      <!-- Upload Jobs Tab -->
-      @if (activeTab() === 'uploadJobs') {
-        <div class="animate-fade-in">
-          <app-file-upload 
-            title="Upload Weekly Jobs" 
-            description="Required columns: 'Work Order', 'Revenue', 'Task Code', 'Qty'. The Technician ID is extracted from 'Work Order' (e.g., ...T12345).">
-          </app-file-upload>
-        </div>
-      }
+              <!-- Manage Rates Card -->
+              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
+                <div class="bg-green-100 text-green-800 p-3 rounded-lg">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="font-semibold text-lg text-brand-text-primary">Manage Rates</h3>
+                  <p class="text-sm text-brand-text-secondary mt-1">Define rate categories and upload payment rates for tasks.</p>
+                </div>
+                <button (click)="selectTab('rates')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                  Go to Rates <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                  </button>
+              </div>
 
-      <!-- Manage Jobs Tab -->
-      @if (activeTab() === 'jobs') {
-        <app-job-management></app-job-management>
-      }
-
-      <!-- Manage Users Tab -->
-      @if (activeTab() === 'users') {
-        <div class="animate-fade-in">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-2xl font-bold">👥 Manage Users</h2>
-            <button 
-              (click)="openNewUserModal()" 
-              class="bg-brand-info hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2">
-              <span>+</span>
-              <span>Add User</span>
-            </button>
-          </div>
-          <div class="bg-gray-800 p-2 rounded-lg">
-            <div class="max-h-[600px] overflow-y-auto">
-              <table class="w-full text-left">
-                <thead class="sticky top-0 bg-gray-900 z-10">
-                  <tr>
-                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Name</th>
-                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Details</th>
-                    <th class="p-4 text-sm font-semibold uppercase text-gray-400">Rate Category</th>
-                    <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-700">
-                  @for (user of users(); track user.id) {
-                    <tr class="hover:bg-gray-700 group">
-                      <td class="p-4">
-                        <p class="font-medium text-white">{{ user.name }}</p>
-                        <p class="text-sm text-gray-400">#{{ user.techId }} | {{ user.role }}</p>
-                      </td>
-                      <td class="p-4">
-                        <p class="text-sm text-gray-300">{{ user.email }}</p>
-                        <p class="text-sm text-gray-400">{{ user.phone }}</p>
-                      </td>
-                      <td class="p-4 text-gray-300">{{ getRateCategoryName(user.rateCategoryId) }}</td>
-                      <td class="p-4 text-center">
-                        <div class="flex justify-center gap-2">
-                           <button (click)="openEditUserModal(user)" class="bg-brand-info hover:bg-blue-700 text-white font-bold py-1 px-3 rounded-md text-sm">Edit</button>
-                           <button (click)="deleteUser(user.id)" class="bg-brand-accent hover:bg-red-700 text-white font-bold py-1 px-3 rounded-md text-sm">Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  } @empty {
-                    <tr>
-                      <td colspan="4" class="text-center text-gray-500 py-16">
-                         <div class="text-5xl">👥</div>
-                        <h3 class="mt-4 text-xl font-semibold">No Users Found</h3>
-                        <p class="mt-1">Click 'Add User' to create the first employee or sub-admin.</p>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+              <!-- View Analytics Card -->
+              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
+                <div class="bg-purple-100 text-purple-800 p-3 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="font-semibold text-lg text-brand-text-primary">Process & Analyze</h3>
+                  <p class="text-sm text-brand-text-secondary mt-1">Analyze weekly data and publish payrolls for your team.</p>
+                </div>
+                   <button (click)="selectTab('analytics')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                     Go to Analytics <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                    </button>
+              </div>
             </div>
           </div>
+        }
+
+        <div [class.hidden]="activeTab() === 'dashboard'">
+          <div class="bg-brand-surface p-6 rounded-lg border border-brand-border">
+              <!-- Upload Payroll Tab -->
+              @if (activeTab() === 'upload') {
+                <app-file-upload 
+                  title="Upload Payroll" 
+                  description="Upload the weekly jobs report to get started.">
+                </app-file-upload>
+              }
+              <!-- Manage Jobs Tab -->
+              @if (activeTab() === 'jobs') {
+                <app-job-management></app-job-management>
+              }
+
+              <!-- Manage Users Tab -->
+              @if (activeTab() === 'users') {
+                <div>
+                  <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                    <div>
+                      <h2 class="text-xl font-semibold text-brand-text-primary">Manage Employees</h2>
+                      <p class="text-brand-text-secondary text-sm mt-1">Add, edit, or remove users from the system.</p>
+                    </div>
+                    <button 
+                      (click)="openNewUserModal()" 
+                      class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-sm hover:shadow-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                      <span>Add Employee</span>
+                    </button>
+                  </div>
+                  <div class="border border-brand-border rounded-lg">
+                    <div class="max-h-[60vh] overflow-y-auto">
+                      <table class="w-full text-left">
+                        <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border">
+                          <tr>
+                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Name</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Details</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Rate Category</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody class="divide-y divide-brand-border">
+                          @for (user of users(); track user.id) {
+                            <tr class="hover:bg-slate-50/70 group transition-colors">
+                              <td class="p-4">
+                                <p class="font-medium text-brand-text-primary">{{ user.name }}</p>
+                                <p class="text-sm text-brand-text-secondary">#{{ user.techId }} | {{ user.role }}</p>
+                              </td>
+                              <td class="p-4">
+                                <p class="text-sm text-brand-text-primary">{{ user.email }}</p>
+                                <p class="text-sm text-brand-text-secondary">{{ user.phone }}</p>
+                              </td>
+                              <td class="p-4 text-brand-text-primary">{{ getRateCategoryName(user.rateCategoryId) }}</td>
+                              <td class="p-4 text-right">
+                                <div class="flex justify-end gap-2">
+                                  <button (click)="openEditUserModal(user)" class="bg-white border border-brand-border text-brand-text-secondary hover:bg-slate-100 hover:text-brand-text-primary font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                                  <button (click)="deleteUser(user.id)" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                                </div>
+                              </td>
+                            </tr>
+                          } @empty {
+                            <tr>
+                              <td colspan="4" class="text-center text-brand-text-secondary py-16">
+                                <div class="text-5xl text-slate-400">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 006-6v-1a6 6 0 00-9-5.197M12 10.25a4 4 0 110-5.292" /></svg>
+                                </div>
+                                <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">No Employees Found</h3>
+                                <p class="mt-1">Click 'Add Employee' to create the first one.</p>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              }
+              
+              <!-- Rate Management Tab -->
+              @if (activeTab() === 'rates') {
+                <app-rate-management></app-rate-management>
+              }
+
+              <!-- Assign to Sub-Admin Tab -->
+              @if (activeTab() === 'assign') {
+                <app-assign-management></app-assign-management>
+              }
+
+              <!-- Publish Data Tab (was Bonuses) -->
+              @if (activeTab() === 'publish') {
+                <app-bonuses-deductions></app-bonuses-deductions>
+              }
+
+              <!-- Revenue Analytics Tab (was reports) -->
+              @if (activeTab() === 'analytics') {
+                <app-weekly-reports></app-weekly-reports>
+              }
+
+              <!-- Payroll History Tab -->
+              @if (activeTab() === 'history') {
+                <app-payroll-history></app-payroll-history>
+              }
+              <!-- Company Settings Tab -->
+              @if (activeTab() === 'settings') {
+                <app-company-settings></app-company-settings>
+              }
+            </div>
         </div>
-      }
-      
-      <!-- Rate Management Tab -->
-      @if (activeTab() === 'rates') {
-        <app-rate-management></app-rate-management>
-      }
-
-      <!-- Assign to Sub-Admin Tab -->
-      @if (activeTab() === 'assign') {
-        <app-assign-management></app-assign-management>
-      }
-
-      <!-- Bonuses & Deductions Tab -->
-      @if (activeTab() === 'bonuses') {
-        <app-bonuses-deductions></app-bonuses-deductions>
-      }
-
-      <!-- Weekly Reports Tab -->
-      @if (activeTab() === 'reports') {
-        <app-weekly-reports (payrollPublished)="onPayrollPublished($event)"></app-weekly-reports>
-      }
-
-      <!-- Payroll History Tab -->
-      @if (activeTab() === 'history') {
-        <app-payroll-history></app-payroll-history>
-      }
-
+      </div>
     </main>
   </div>
-</div>
 
-<!-- Add/Edit User Modal -->
-@if (showUserModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
-    <div class="bg-brand-secondary rounded-lg shadow-2xl p-8 w-full max-w-lg m-4">
-      <h2 class="text-2xl font-bold mb-6 text-white">{{ userToEdit() ? 'Edit User' : 'Create New User' }}</h2>
-      <form [formGroup]="userForm" (ngSubmit)="saveUser()">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input formControlName="name" placeholder="Full Name" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <input formControlName="username" placeholder="Username" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <input formControlName="techId" placeholder="Tech ID" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <input formControlName="email" type="email" placeholder="Email Address" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <input formControlName="phone" placeholder="Phone Number" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <input formControlName="password" type="password" [placeholder]="userToEdit() ? 'New Password (optional)' : 'Password'" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
-          <select formControlName="role" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none col-span-1 md:col-span-2">
-            <option value="employee">Employee</option>
-            <option value="sub-admin">Sub-Admin</option>
-          </select>
-           <select formControlName="rateCategoryId" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none col-span-1 md:col-span-2">
-            <option [ngValue]="null" [disabled]="rateCategories().length === 0">
-              {{ rateCategories().length > 0 ? 'Select Rate Category (Optional)' : 'No Rate Categories exist - Assign later' }}
-            </option>
-            @for (cat of rateCategories(); track cat.id) {
-              <option [value]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-        </div>
-        <div class="flex justify-end gap-4 mt-8">
-          <button type="button" (click)="closeUserModal()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancel</button>
-          <button type="submit" [disabled]="userForm.invalid" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed">Save User</button>
-        </div>
-      </form>
+  <!-- Add/Edit User Modal -->
+  @if (showUserModal()) {
+    <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
+      <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-brand-border max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">{{ userToEdit() ? 'Edit User' : 'Create New User' }}</h2>
+        <form [formGroup]="userForm" (ngSubmit)="saveUser()">
+          <div class="space-y-4">
+            <div>
+              <label for="name" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Full Name</label>
+              <input id="name" formControlName="name" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+            </div>
+            <div>
+              <label for="username" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Username</label>
+              <input id="username" formControlName="username" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="techId" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Tech ID</label>
+                <input id="techId" formControlName="techId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+              </div>
+              <div>
+                <label for="phone" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Phone Number</label>
+                <input id="phone" formControlName="phone" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+              </div>
+            </div>
+            <div>
+              <label for="email" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Email Address</label>
+              <input id="email" formControlName="email" type="email" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+            </div>
+             <div>
+              <label for="password" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Password</label>
+              <input id="password" formControlName="password" type="password" [placeholder]="userToEdit() ? 'New Password (optional)' : 'Password'" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+            </div>
+            <div>
+              <label for="role" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Role</label>
+              <select id="role" formControlName="role" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+                <option value="employee">Employee</option>
+                <option value="sub-admin">Sub-Admin</option>
+              </select>
+            </div>
+            <div>
+              <label for="rateCategoryId" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Rate Category</label>
+              <select id="rateCategoryId" formControlName="rateCategoryId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+                <option [ngValue]="null" [disabled]="rateCategories().length === 0">
+                  {{ rateCategories().length > 0 ? 'Select Rate Category (Optional)' : 'No Rate Categories exist - Assign later' }}
+                </option>
+                @for (cat of rateCategories(); track cat.id) {
+                  <option [value]="cat.id">{{ cat.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="flex justify-end gap-4 mt-8">
+            <button type="button" (click)="closeUserModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg transition-colors">Cancel</button>
+            <button type="submit" [disabled]="userForm.invalid || isSavingUser()" class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-6 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors w-32 text-center">
+              @if(isSavingUser()) {
+                <svg class="animate-spin mx-auto h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              } @else {
+                <span>Save User</span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
-}
+  }
+</div>

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, inject, input, computed } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { MockDataService } from '../../../services/mock-data.service';
+// Fix: Replaced CloudDataService with DatabaseService as it was not found.
+import { DatabaseService } from '../../../services/database.service';
 import { Job } from '../../../models/payroll.model';
 
 declare var XLSX: any;
@@ -13,7 +14,8 @@ declare var XLSX: any;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FileUploadComponent {
-  private dataService = inject(MockDataService);
+  // Fix: Injected DatabaseService instead of the non-existent CloudDataService.
+  private dataService = inject(DatabaseService);
 
   title = input.required<string>();
   description = input.required<string>();
@@ -28,9 +30,9 @@ export class FileUploadComponent {
   uploadStatus = signal<'idle' | 'uploading' | 'success' | 'error'>('idle');
   uploadMessage = signal('');
 
-  clearJobs() {
+  async clearJobs() {
     if (confirm('Are you sure you want to clear all current jobs and adjustments? This action cannot be undone.')) {
-        this.dataService.clearJobs();
+        await this.dataService.clearJobs();
         this.uploadStatus.set('idle');
         this.uploadMessage.set('All jobs and adjustments have been cleared.');
     }
@@ -53,7 +55,7 @@ export class FileUploadComponent {
     this.uploadMessage.set('Reading and processing file...');
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = async (e: any) => {
       try {
         const arrayBuffer = e.target.result;
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -161,13 +163,11 @@ export class FileUploadComponent {
              warnings.push(`Skipping row ${rowNum}: Parsed Tech ID was empty.`);
           }
         }
-
-        // Add jobs and create placeholder users for any new tech IDs
-        this.dataService.addJobs(newJobs);
         
         const existingTechIds = new Set(this.dataService.users().map(u => u.techId));
         const newTechIds = Array.from(techIdsInFile).filter(id => !existingTechIds.has(id));
         
+        this.dataService.addJobs(newJobs);
         if (newTechIds.length > 0) {
           this.dataService.addPlaceholderUsers(newTechIds);
         }
@@ -175,7 +175,7 @@ export class FileUploadComponent {
         this.uploadStatus.set('success');
         let successMessage = `Successfully added ${newJobs.length} jobs.`;
         if (newTechIds.length > 0) {
-            successMessage += ` ${newTechIds.length} new user(s) were created automatically. Please review and update their profiles in 'Manage Users'.`;
+            successMessage += ` ${newTechIds.length} new user(s) were created. Please update their profiles in 'Manage Employees'.`;
         }
         if (warnings.length > 0) {
             successMessage += ` Encountered ${warnings.length} warnings (check console for details).`;

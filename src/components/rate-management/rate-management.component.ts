@@ -1,8 +1,9 @@
 import { Component, ChangeDetectionStrategy, signal, inject, computed, effect, WritableSignal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { MockDataService } from '../../services/mock-data.service';
+import { DatabaseService } from '../../services/database.service';
 import { Rate, RateCategory } from '../../models/payroll.model';
+import { NotificationService } from '../../services/notification.service';
 
 declare var XLSX: any;
 
@@ -14,13 +15,13 @@ declare var XLSX: any;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RateManagementComponent {
-  private dataService = inject(MockDataService);
-  private fb = inject(FormBuilder);
+  private dataService = inject(DatabaseService);
+  private notificationService = inject(NotificationService);
+  private fb: FormBuilder;
   
   rateCategories = this.dataService.rateCategories;
   selectedCategoryId = signal<number | null>(null);
   
-  // Computed property for the currently selected category object
   selectedCategory = computed(() => {
     const catId = this.selectedCategoryId();
     if (catId === null) return null;
@@ -28,42 +29,33 @@ export class RateManagementComponent {
   });
 
   currentRates = computed(() => {
-    return this.selectedCategory()?.rates || [];
+    return this.selectedCategory()?.rates.sort((a,b) => a.taskCode.localeCompare(b.taskCode)) || [];
   });
 
   uploadStatus = signal<'idle' | 'processing' | 'success' | 'error'>('idle');
   uploadMessage = signal('');
   
-  // Category Modal State
   showCategoryModal = signal(false);
+  isSavingCategory = signal(false);
   categoryToEdit: WritableSignal<RateCategory | null> = signal(null);
   categoryForm: FormGroup;
 
-  // Rate Modal State
   showRateModal = signal(false);
+  isSavingRate = signal(false);
   rateToEdit: WritableSignal<Rate | null> = signal(null);
   rateForm: FormGroup;
 
   constructor() {
-    // FIX: Removed redundant FormBuilder injection. It is already injected as a class property,
-    // and having it here was causing a type inference error.
-    
-    this.categoryForm = this.fb.group({
-      name: ['', Validators.required],
-    });
-
-    this.rateForm = this.fb.group({
-      rate: ['', [Validators.required, Validators.min(0)]]
-    });
+    this.fb = inject(FormBuilder);
+    this.categoryForm = this.fb.group({ name: ['', Validators.required] });
+    this.rateForm = this.fb.group({ rate: ['', [Validators.required, Validators.min(0)]] });
 
     effect(() => {
       const categories = this.rateCategories();
       const selectedId = this.selectedCategoryId();
-      // If categories exist but none are selected, select the first one.
       if (categories.length > 0 && selectedId === null) {
         this.selectedCategoryId.set(categories[0].id);
       }
-      // If the selected category is deleted, select another one or null
       if (selectedId !== null && !categories.some(c => c.id === selectedId)) {
         this.selectedCategoryId.set(categories[0]?.id || null);
       }
@@ -74,59 +66,57 @@ export class RateManagementComponent {
     const select = event.target as HTMLSelectElement;
     this.selectedCategoryId.set(Number(select.value));
     this.uploadStatus.set('idle');
-    this.uploadMessage.set('');
   }
 
-  // --- CATEGORY CRUD ---
   openCategoryModal(category: RateCategory | null = null) {
     this.categoryToEdit.set(category);
-    if (category) {
-      this.categoryForm.patchValue({ name: category.name });
-    } else {
-      this.categoryForm.reset();
-    }
+    this.categoryForm.reset(category ? { name: category.name } : {});
     this.showCategoryModal.set(true);
   }
 
   closeCategoryModal() {
     this.showCategoryModal.set(false);
-    this.categoryToEdit.set(null);
   }
 
-  saveCategory() {
+  async saveCategory() {
     if (this.categoryForm.invalid) return;
+    this.isSavingCategory.set(true);
     
     const name = this.categoryForm.value.name;
     const editingCategory = this.categoryToEdit();
     
     try {
       if (editingCategory) {
-        this.dataService.updateRateCategory(editingCategory.id, name);
+        await this.dataService.updateRateCategory(editingCategory.id, name);
+        this.notificationService.showSuccess(`Category '${name}' updated.`);
       } else {
-        this.dataService.addRateCategory(name);
-        // Select the newly added category for better UX
-        const newCategory = this.rateCategories().slice(-1)[0];
-        if (newCategory) {
-          this.selectedCategoryId.set(newCategory.id);
-        }
+        await this.dataService.addRateCategory(name);
+        this.notificationService.showSuccess(`Category '${name}' created.`);
+        const newCategory = this.rateCategories().find(c => c.name === name);
+        if (newCategory) this.selectedCategoryId.set(newCategory.id);
       }
       this.closeCategoryModal();
     } catch (error) {
-       alert(`Error: ${error instanceof Error ? error.message : String(error)}`);
+       const msg = error instanceof Error ? error.message : String(error);
+       this.notificationService.showError(msg);
+    } finally {
+      this.isSavingCategory.set(false);
     }
   }
 
-  deleteCategory(categoryId: number) {
-    if (confirm('Are you sure you want to delete this category and all its rates? This cannot be undone.')) {
+  async deleteCategory(categoryId: number) {
+    const category = this.rateCategories().find(c => c.id === categoryId);
+    if (confirm(`Are you sure you want to delete the category "${category?.name}"? Any users assigned to it will be unassigned.`)) {
       try {
-        this.dataService.deleteRateCategory(categoryId);
+        await this.dataService.deleteRateCategory(categoryId);
+        this.notificationService.showSuccess(`Category '${category?.name}' deleted.`);
       } catch (error) {
-        alert(`Error: ${error instanceof Error ? error.message : String(error)}`);
+        const msg = error instanceof Error ? error.message : String(error);
+        this.notificationService.showError(msg);
       }
     }
   }
 
-  // --- RATE CRUD ---
   openRateModal(rate: Rate) {
     this.rateToEdit.set(rate);
     this.rateForm.patchValue({ rate: rate.rate });
@@ -135,126 +125,107 @@ export class RateManagementComponent {
 
   closeRateModal() {
     this.showRateModal.set(false);
-    this.rateToEdit.set(null);
   }
 
-  saveRate() {
+  async saveRate() {
     if (this.rateForm.invalid) return;
-    
+    this.isSavingRate.set(true);
+
     const category = this.selectedCategory();
     const editingRate = this.rateToEdit();
-    if (!category || !editingRate) return;
+    if (!category || !editingRate) {
+        this.isSavingRate.set(false);
+        return;
+    }
 
-    const newRateValue = this.rateForm.value.rate;
-    
-    const updatedRates = this.currentRates().map(r => 
-      r.taskCode === editingRate.taskCode ? { ...r, rate: newRateValue } : r
-    );
+    const newRateValue = parseFloat(this.rateForm.value.rate);
+    const updatedRates = this.currentRates().map(r => r.taskCode === editingRate.taskCode ? { ...r, rate: newRateValue } : r);
 
-    this.dataService.updateRatesForCategory(category.id, updatedRates);
-    this.closeRateModal();
-  }
-
-  deleteRate(taskCode: string) {
-    const category = this.selectedCategory();
-    if (!category) return;
-
-    if (confirm(`Are you sure you want to delete the rate for task code "${taskCode}"?`)) {
-      const updatedRates = this.currentRates().filter(r => r.taskCode !== taskCode);
-      this.dataService.updateRatesForCategory(category.id, updatedRates);
+    try {
+        await this.dataService.updateRatesForCategory(category.id, updatedRates);
+        this.notificationService.showSuccess(`Rate for '${editingRate.taskCode}' updated.`);
+        this.closeRateModal();
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        this.notificationService.showError(msg);
+    } finally {
+        this.isSavingRate.set(false);
     }
   }
 
-  // --- FILE UPLOAD ---
+  async deleteRate(taskCode: string) {
+    const category = this.selectedCategory();
+    if (!category) return;
+
+    if (confirm(`Delete rate for task code "${taskCode}"?`)) {
+      const updatedRates = this.currentRates().filter(r => r.taskCode !== taskCode);
+      await this.dataService.updateRatesForCategory(category.id, updatedRates);
+      this.notificationService.showSuccess(`Rate for '${taskCode}' deleted.`);
+    }
+  }
+
   onFileSelected(event: Event): void {
     const catId = this.selectedCategoryId();
     if (catId === null) {
-      alert('Please select or create a rate category before uploading a file.');
+      this.notificationService.showError('Please select a category before uploading.');
       return;
     }
 
     const input = event.target as HTMLInputElement;
-    if (!input.files || input.files.length === 0) {
-      return;
-    }
+    if (!input.files?.[0]) return;
     const file = input.files[0];
     this.uploadStatus.set('processing');
     this.uploadMessage.set(`Processing ${file.name}...`);
 
     const reader = new FileReader();
-    reader.onload = (e: any) => {
+    reader.onload = async (e: any) => {
       try {
-        const arrayBuffer = e.target.result;
-        const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
+        const workbook = XLSX.read(e.target.result, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
 
         const result = this.processRateSheet(jsonData);
 
         if (result.success) {
-          this.dataService.updateRatesForCategory(catId, result.rates);
+          await this.dataService.updateRatesForCategory(catId, result.rates);
           this.uploadStatus.set('success');
-          this.uploadMessage.set(`Successfully processed and replaced ${result.rates.length} rates.`);
+          this.uploadMessage.set(`Successfully replaced ${result.rates.length} rates.`);
         } else {
-          this.uploadStatus.set('error');
-          this.uploadMessage.set(`Error: ${result.message}`);
+          throw new Error(result.message);
         }
-
       } catch (error) {
         this.uploadStatus.set('error');
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        this.uploadMessage.set(`Error: Failed to read or parse the file. ${errorMessage}`);
+        this.uploadMessage.set(error instanceof Error ? error.message : 'Failed to process file.');
+      } finally {
+         input.value = '';
       }
-      input.value = ''; // Reset file input
-    };
-    reader.onerror = () => {
-      this.uploadStatus.set('error');
-      this.uploadMessage.set('Error: Could not read the selected file.');
-      input.value = ''; // Reset file input
     };
     reader.readAsArrayBuffer(file);
   }
 
   private processRateSheet(data: any[]): { success: boolean; message?: string; rates: Rate[] } {
-    if (!data || data.length === 0) {
-      return { success: false, message: 'The rate sheet file is empty.', rates: [] };
-    }
+    if (!data || data.length === 0) return { success: false, message: 'File is empty.', rates: [] };
     
-    // Find header keys for 'Task Code' and 'Rate', case-insensitively
     const headers = Object.keys(data[0] || {});
     const taskCodeHeader = headers.find(h => h.toLowerCase().includes('task code'));
     const rateHeader = headers.find(h => h.toLowerCase().includes('rate'));
 
-    if (!taskCodeHeader || !rateHeader) {
-      return { success: false, message: `Could not find 'Task Code' and/or 'Rate' columns in the file.`, rates: [] };
-    }
+    if (!taskCodeHeader || !rateHeader) return { success: false, message: `Missing 'Task Code' and/or 'Rate' columns.`, rates: [] };
     
     const newRates: Rate[] = [];
     for (const [index, row] of data.entries()) {
       const taskCode = row[taskCodeHeader];
       const rate = row[rateHeader];
 
-      if (taskCode === undefined || rate === undefined) {
-         console.warn(`Skipping row ${index + 2} due to missing data.`);
-         continue;
-      }
+      if (taskCode === undefined || rate === undefined) continue;
       
       const taskCodeStr = String(taskCode).trim();
-      if (!taskCodeStr) {
-          console.warn(`Skipping row ${index + 2} due to empty task code.`);
-          continue;
-      }
+      if (!taskCodeStr) continue;
 
       const parsedRate = parseFloat(String(rate).replace(/[^0-9.-]+/g,""));
-      if (isNaN(parsedRate)) {
-        return { success: false, message: `Invalid rate value in row ${index + 2} for task code "${taskCodeStr}". Rate must be a number.`, rates: [] };
-      }
+      if (isNaN(parsedRate)) return { success: false, message: `Invalid rate in row ${index + 2}.`, rates: [] };
 
-      newRates.push({
-        taskCode: taskCodeStr,
-        rate: parsedRate
-      });
+      newRates.push({ taskCode: taskCodeStr, rate: parsedRate });
     }
     return { success: true, rates: newRates };
   }

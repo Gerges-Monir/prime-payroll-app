@@ -1,0 +1,49 @@
+:root {
+  /* NEW Blue-themed Color Palette from Prime Communication Logo */
+  --brand-primary: #2563EB;          /* Blue 600 */
+  --brand-primary-hover: #1D4ED8;    /* Blue 700 */
+  --brand-background: #F8FAFC;      /* Slate 50 */
+  --brand-surface: #FFFFFF;         /* White */
+
+  /* Text Colors */
+  --brand-text-primary: #1E293B;    /* Slate 800 */
+  --brand-text-secondary: #64748B;  /* Slate 500 */
+  --brand-text-on-primary: #FFFFFF; /* White */
+
+  /* UI Element Colors */
+  --brand-border: #E2E8F0;          /* Slate 200 */
+  --brand-input-bg: #F1F5F9;        /* Slate 100 */
+  
+  /* Semantic Colors */
+  --brand-success: #16A34A;         /* Green 600 */
+  --brand-danger: #DC2626;          /* Red 600 */
+  --brand-warning: #F59E0B;         /* Amber 500 */
+
+  /* Navigation Specific */
+  --brand-nav-active-bg: #DBEAFE;   /* Blue 200 */
+  --brand-nav-active-text: #1E3A8A; /* Blue 900 */
+  
+  /* Base Typography & Layout */
+  --radius: 8px;
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+}
+
+/* Global Styles */
+body {
+  font-family: var(--font-sans);
+  color: var(--brand-text-primary);
+  background: var(--brand-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add smooth transitions to common interactive elements */
+button, a, input, select, textarea, [class*="hover:"] {
+  transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out, color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}

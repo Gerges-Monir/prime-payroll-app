@@ -1,7 +1,8 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { MockDataService } from '../../services/mock-data.service';
+import { DatabaseService } from '../../services/database.service';
 import { UiStateService } from '../../services/ui-state.service';
+import { NotificationService } from '../../services/notification.service';
 import { PublishedPayroll, ProcessedTechnician } from '../../models/payroll.model';
 
 @Component({
@@ -12,21 +13,29 @@ import { PublishedPayroll, ProcessedTechnician } from '../../models/payroll.mode
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PayrollHistoryComponent {
-  private dataService = inject(MockDataService);
+  private dataService = inject(DatabaseService);
   private uiStateService = inject(UiStateService);
+  private notificationService = inject(NotificationService);
 
   publishedPayrolls = this.dataService.publishedPayrolls;
   selectedPayrollId = signal<string | null>(null);
+  selectedTechnicianId = signal<number|null>(null);
 
   selectedPayroll = computed(() => {
     const id = this.selectedPayrollId();
     if (!id) return null;
-    const payroll = this.publishedPayrolls().find(p => p.id === id) ?? null;
-    // If the selected payroll was deleted, reset the selection
+    const payroll = this.publishedPayrolls().find(p => p.id === id);
     if (!payroll && id) {
-      this.selectedPayrollId.set(null);
+        this.selectedPayrollId.set(null);
     }
-    return payroll;
+    return payroll ?? null;
+  });
+  
+  selectedTechnicianReport = computed(() => {
+      const payroll = this.selectedPayroll();
+      const techId = this.selectedTechnicianId();
+      if (!payroll || techId === null) return null;
+      return payroll.reportData.find(tech => tech.id === techId) ?? null;
   });
 
   constructor() {
@@ -34,32 +43,58 @@ export class PayrollHistoryComponent {
       const payrollId = this.uiStateService.navigateToPayrollId();
       if (payrollId) {
         this.selectedPayrollId.set(payrollId);
-        this.uiStateService.navigateToPayrollId.set(null); // Reset after navigation
+        this.uiStateService.navigateToPayrollId.set(null);
       }
+    }, { allowSignalWrites: true });
+    
+    // Automatically select the first payroll if none is selected
+    effect(() => {
+        if (!this.selectedPayrollId() && this.publishedPayrolls().length > 0) {
+            this.selectedPayrollId.set(this.publishedPayrolls()[0].id);
+        }
     }, { allowSignalWrites: true });
   }
 
   selectPayroll(payrollId: string) {
     this.selectedPayrollId.set(payrollId);
+    this.selectedTechnicianId.set(null); // Reset tech selection when changing payroll
   }
 
-  finalize(payrollId: string, event: MouseEvent) {
+  toggleTechnicianDetails(techId: number) {
+      if (this.selectedTechnicianId() === techId) {
+          this.selectedTechnicianId.set(null);
+      } else {
+          this.selectedTechnicianId.set(techId);
+      }
+  }
+
+  async finalize(payrollId: string, event: MouseEvent) {
     event.stopPropagation();
-    if (confirm('Are you sure you want to finalize this payroll? It will become visible to all employees in the report.')) {
-      this.dataService.finalizePayroll(payrollId);
+    if (confirm('Finalize this payroll? It will become visible to employees.')) {
+      await this.dataService.finalizePayroll(payrollId);
+      this.notificationService.showSuccess('Payroll has been finalized.');
     }
   }
 
-  unfinalize(payrollId: string, event: MouseEvent) {
+  async unfinalize(payrollId: string, event: MouseEvent) {
     event.stopPropagation();
-    if (confirm('Are you sure you want to un-finalize this payroll? It will be hidden from employees until finalized again.')) {
-      this.dataService.unfinalizePayroll(payrollId);
+    if (confirm('Un-finalize this payroll? It will be hidden from employees.')) {
+      await this.dataService.unfinalizePayroll(payrollId);
+      this.notificationService.showSuccess('Payroll has been moved back to drafts.');
     }
   }
 
-  delete(payrollId: string, event: MouseEvent) {
+  async delete(payrollId: string, event: MouseEvent) {
     event.stopPropagation();
-    this.dataService.deletePayroll(payrollId);
+    if (confirm('Permanently delete this draft? This cannot be undone.')) {
+        try {
+            await this.dataService.deletePayroll(payrollId);
+            this.notificationService.showSuccess('Payroll draft deleted.');
+        } catch(e) {
+            const msg = e instanceof Error ? e.message : String(e);
+            this.notificationService.showError(msg);
+        }
+    }
   }
 
   getAdjustmentsTotal(tech: ProcessedTechnician): number {

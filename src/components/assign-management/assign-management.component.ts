@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MockDataService } from '../../services/mock-data.service';
+// Fix: Replaced CloudDataService with DatabaseService as it was not found.
+import { DatabaseService } from '../../services/database.service';
 import { User } from '../../models/payroll.model';
 
 @Component({
@@ -11,7 +12,8 @@ import { User } from '../../models/payroll.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AssignManagementComponent {
-  private dataService = inject(MockDataService);
+  // Fix: Injected DatabaseService instead of the non-existent CloudDataService.
+  private dataService = inject(DatabaseService);
 
   users = this.dataService.users;
   selectedSubAdminId = signal<number | null>(null);
@@ -40,14 +42,14 @@ export class AssignManagementComponent {
     this.selectedSubAdminId.set(id);
   }
 
-  assign(employeeId: number) {
+  async assign(employeeId: number): Promise<void> {
     const subAdminId = this.selectedSubAdminId();
     if (subAdminId) {
       this.dataService.assignEmployeeToSubAdmin(employeeId, subAdminId);
     }
   }
 
-  unassign(employeeId: number) {
+  async unassign(employeeId: number): Promise<void> {
     this.dataService.unassignEmployee(employeeId);
   }
 }

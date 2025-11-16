@@ -1,19 +1,19 @@
 <div class="animate-fade-in">
   <div class="mb-6">
-    <h2 class="text-2xl font-bold">📚 Payroll History</h2>
-    <p class="text-gray-400">Review, finalize, and manage all payroll reports.</p>
+    <h2 class="text-xl font-semibold text-brand-text-primary">Payroll History</h2>
+    <p class="text-brand-text-secondary">Review, finalize, and manage all payroll reports.</p>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Payroll List -->
     <div class="lg:col-span-1">
-      <h3 class="text-xl font-bold mb-4">Saved Periods</h3>
-      <div class="bg-gray-800 p-2 rounded-lg max-h-[600px] overflow-y-auto">
+      <h3 class="text-lg font-semibold mb-4 text-brand-text-primary">Saved Periods</h3>
+      <div class="bg-slate-50 p-2 rounded-lg max-h-[600px] overflow-y-auto border border-brand-border">
         <div class="space-y-2">
           @for (payroll of publishedPayrolls(); track payroll.id) {
             <button 
               (click)="selectPayroll(payroll.id)"
-              [class]="(selectedPayrollId() === payroll.id ? 'bg-brand-info text-white ring-2 ring-blue-400' : 'bg-gray-700 hover:bg-gray-600 text-gray-300') + ' w-full text-left p-4 rounded-lg transition-colors'">
+              [class]="(selectedPayrollId() === payroll.id ? 'bg-brand-primary text-white ring-2 ring-brand-primary/50' : 'bg-brand-surface hover:bg-slate-100/70 text-brand-text-primary') + ' w-full text-left p-4 rounded-lg transition-colors border border-brand-border'">
               <div class="flex justify-between items-start">
                   <div>
                     <p class="font-semibold">
@@ -23,16 +23,17 @@
                   </div>
                   <span 
                     class="text-xs font-bold uppercase px-2 py-1 rounded-full"
-                    [class.bg-amber-400]="payroll.status === 'draft'"
-                    [class.text-amber-900]="payroll.status === 'draft'"
-                    [class.bg-green-400]="payroll.status === 'finalized'"
-                    [class.text-green-900]="payroll.status === 'finalized'">
+                    [class]="selectedPayrollId() === payroll.id ? 'bg-white/20' : ''"
+                    [class.bg-amber-100]="payroll.status === 'draft' && selectedPayrollId() !== payroll.id"
+                    [class.text-amber-800]="payroll.status === 'draft' && selectedPayrollId() !== payroll.id"
+                    [class.bg-green-100]="payroll.status === 'finalized' && selectedPayrollId() !== payroll.id"
+                    [class.text-green-800]="payroll.status === 'finalized' && selectedPayrollId() !== payroll.id">
                     {{ payroll.status }}
                   </span>
               </div>
             </button>
           } @empty {
-            <div class="p-8 text-center text-gray-500">
+            <div class="p-8 text-center text-brand-text-secondary">
               <p>No payrolls have been created yet.</p>
             </div>
           }
@@ -45,46 +46,92 @@
        @if (selectedPayroll(); as payroll) {
         <div class="animate-fade-in-fast">
           <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-4">
-            <h3 class="text-xl font-bold">Report for {{ payroll.startDate | date:'MMM d' }} - {{ payroll.endDate | date:'MMM d, y' }}</h3>
+            <h3 class="text-lg font-semibold text-brand-text-primary">Report for {{ payroll.startDate | date:'MMM d' }} - {{ payroll.endDate | date:'MMM d, y' }}</h3>
             <!-- Action Buttons -->
             <div class="flex gap-2 flex-shrink-0">
               @if (payroll.status === 'draft') {
-                <button (click)="finalize(payroll.id, $event)" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>✅</span> Finalize</button>
-                <button (click)="delete(payroll.id, $event)" class="bg-brand-accent hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>🗑️</span> Delete Draft</button>
+                <button (click)="finalize(payroll.id, $event)" class="bg-brand-success hover:bg-opacity-90 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg> Finalize</button>
+                <button (click)="delete(payroll.id, $event)" class="bg-brand-danger hover:bg-opacity-90 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg> Delete Draft</button>
               } @else {
-                <button (click)="unfinalize(payroll.id, $event)" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><span>✏️</span> Un-finalize</button>
+                <button (click)="unfinalize(payroll.id, $event)" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg text-sm flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" /></svg> Un-finalize</button>
               }
             </div>
           </div>
-          <div class="bg-gray-800 p-2 rounded-lg">
+          <div class="border border-brand-border rounded-lg">
              <div class="max-h-[600px] overflow-y-auto">
                 <table class="w-full text-left">
-                  <thead class="sticky top-0 bg-gray-900 z-10">
+                  <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border">
                     <tr>
-                      <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
-                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Jobs</th>
-                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Adjustments</th>
-                      <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Final Payout</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Technician</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Jobs</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Adjustments</th>
+                      <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Final Payout</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-gray-700">
+                  <tbody class="divide-y divide-brand-border">
                     @for (tech of payroll.reportData; track tech.id) {
                       @let adjTotal = getAdjustmentsTotal(tech);
-                      <tr class="hover:bg-gray-700">
+                      <tr class="hover:bg-slate-50/70 cursor-pointer" (click)="toggleTechnicianDetails(tech.id)">
                         <td class="p-4">
-                            <p class="font-medium text-white">{{ tech.name }}</p>
-                            <p class="text-sm text-gray-400">#{{ tech.techId }}</p>
+                            <div class="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                                     class="w-4 h-4 text-brand-text-secondary transition-transform"
+                                     [class.rotate-90]="selectedTechnicianId() === tech.id">
+                                  <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-brand-text-primary">{{ tech.name }}</p>
+                                    <p class="text-sm text-brand-text-secondary">#{{ tech.techId }}</p>
+                                </div>
+                            </div>
                         </td>
-                        <td class="p-4 text-right font-mono text-white">{{ tech.totalJobs }}</td>
+                        <td class="p-4 text-right font-mono text-brand-text-primary">{{ tech.totalJobs }}</td>
                         <td 
                           class="p-4 text-right font-mono"
-                          [class.text-gray-500]="adjTotal === 0"
-                          [class.text-green-400]="adjTotal > 0"
-                          [class.text-red-400]="adjTotal < 0">
+                          [class.text-slate-500]="adjTotal === 0"
+                          [class.text-green-600]="adjTotal > 0"
+                          [class.text-red-600]="adjTotal < 0">
                           {{ adjTotal | currency }}
                         </td>
-                        <td class="p-4 text-right font-mono text-brand-success font-bold">{{ tech.totalEarnings | currency }}</td>
+                        <td class="p-4 text-right font-mono text-green-600 font-bold">{{ tech.totalEarnings | currency }}</td>
                       </tr>
+                      @if (selectedTechnicianId() === tech.id) {
+                        <tr>
+                            <td colspan="4" class="p-0 bg-slate-100">
+                                <div class="p-4 animate-fade-in-fast">
+                                    <h4 class="font-semibold text-brand-text-primary mb-2">Job Details for {{tech.name}}</h4>
+                                    @if(tech.processedJobs && tech.processedJobs.length > 0) {
+                                      <div class="max-h-64 overflow-y-auto border border-brand-border rounded-md">
+                                        <table class="w-full text-sm text-left bg-white">
+                                          <thead class="sticky top-0 bg-slate-200 z-10">
+                                            <tr>
+                                              <th class="p-2 font-semibold text-brand-text-secondary">Date</th>
+                                              <th class="p-2 font-semibold text-brand-text-secondary">Task</th>
+                                              <th class="p-2 font-semibold text-brand-text-secondary text-right">Revenue</th>
+                                              <th class="p-2 font-semibold text-brand-text-secondary text-right">Rate</th>
+                                              <th class="p-2 font-semibold text-brand-text-secondary text-right">Earning</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody class="divide-y divide-brand-border">
+                                            @for(job of tech.processedJobs; track job.id) {
+                                              <tr>
+                                                <td class="p-2">{{ job.date | date:'shortDate' }}</td>
+                                                <td class="p-2">{{ job.taskCode }} (x{{job.quantity}})</td>
+                                                <td class="p-2 text-right font-mono">{{ job.revenue | currency }}</td>
+                                                <td class="p-2 text-right font-mono text-brand-text-secondary">{{ job.rateApplied | currency }}</td>
+                                                <td class="p-2 text-right font-mono font-semibold">{{ job.earning | currency }}</td>
+                                              </tr>
+                                            }
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    } @else {
+                                      <p class="text-center text-brand-text-secondary py-4">No jobs were processed for this technician in this period.</p>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                      }
                     }
                   </tbody>
                 </table>
@@ -92,10 +139,10 @@
           </div>
         </div>
        } @else {
-        <div class="h-full flex items-center justify-center text-center text-gray-500 bg-gray-800 rounded-lg">
+        <div class="h-full flex items-center justify-center text-center text-brand-text-secondary bg-slate-50/70 rounded-lg border-2 border-dashed border-brand-border">
           <div>
-            <div class="text-6xl mb-4">👈</div>
-            <h2 class="text-3xl font-bold">Select a Payroll Period</h2>
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.042 21.672 13.684 16.6m0 0-2.51 2.225.569-9.47 5.227 7.917-3.286-.672ZM12 2.25V4.5m5.834.166-1.591 1.591M20.25 10.5H18M12 21.75V19.5M5.834 18.834 7.425 17.243M3.75 10.5H6M4.166 5.166 5.757 6.757" /></svg>
+            <h2 class="text-2xl font-bold text-brand-text-primary mt-4">Select a Payroll Period</h2>
             <p class="mt-2 text-lg">Choose a saved report from the list to view its details.</p>
           </div>
         </div>

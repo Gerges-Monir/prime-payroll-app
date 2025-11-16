@@ -2,22 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Prime Payroll Dashboard</title>
+  <title>Prime Communication Payroll</title>
   <base href="/" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/styles/branding.css">
   <script>
     tailwind.config = {
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+          },
           colors: {
-            'brand-primary': '#1a2a3a',
-            'brand-secondary': '#2c3e50',
-            'brand-accent': '#e74c3c',
-            'brand-success': '#27ae60',
-            'brand-info': '#3498db',
+            'brand-primary': 'var(--brand-primary)',
+            'brand-primary-hover': 'var(--brand-primary-hover)',
+            'brand-background': 'var(--brand-background)',
+            'brand-surface': 'var(--brand-surface)',
+            'brand-accent': 'var(--brand-accent)',
+            'brand-text-primary': 'var(--brand-text-primary)',
+            'brand-text-secondary': 'var(--brand-text-secondary)',
+            'brand-text-on-primary': 'var(--brand-text-on-primary)',
+            'brand-border': 'var(--brand-border)',
+            'brand-input-bg': 'var(--brand-input-bg)',
+            'brand-success': 'var(--brand-success)',
+            'brand-danger': 'var(--brand-danger)',
+            'brand-nav-active-bg': 'var(--brand-nav-active-bg)',
+            'brand-nav-active-text': 'var(--brand-nav-active-text)',
           },
           animation: {
             'fade-in': 'fadeIn 0.3s ease-out forwards',
@@ -25,8 +43,8 @@
           },
           keyframes: {
             fadeIn: {
-              '0%': { opacity: 0, transform: 'translateY(10px)' },
-              '100%': { opacity: 1, transform: 'translateY(0)' },
+              '0%': { opacity: 0 },
+              '100%': { opacity: 1 },
             }
           }
         }
@@ -46,12 +64,13 @@
     "@angular/platform-browser": "https://next.esm.sh/@angular/platform-browser@^20.3.10?external=rxjs",
     "@angular/core": "https://next.esm.sh/@angular/core@^20.3.10?external=rxjs",
     "@angular/common": "https://next.esm.sh/@angular/common@^20.3.10?external=rxjs",
-    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.3.10?external=rxjs"
+    "@angular/forms": "https://next.esm.sh/@angular/forms@^20.3.10?external=rxjs",
+    "@angular/animations": "https://next.esm.sh/@angular/animations@^20.3.12?external=rxjs"
   }
 }
 </script>
 </head>
-<body class="bg-brand-primary">
+<body class="bg-brand-background">
   <app-root></app-root>
 </body>
 </html>

@@ -26,6 +26,7 @@ export interface StatCard {
   value: string;
   icon: string;
   color: string;
+  description: string;
 }
 
 export type AdjustmentType = 'Bonus' | 'Chargeback' | 'Loan Payment' | 'Equipment Rental';
@@ -39,6 +40,18 @@ export interface Adjustment {
   type: AdjustmentType;
 }
 
+// NEW: Represents a job that has been processed and saved in a payroll.
+// This is a snapshot and is immutable.
+export interface ProcessedJob {
+    id: number;
+    taskCode: string;
+    revenue: number;
+    quantity: number;
+    date: string; // YYYY-MM-DD
+    rateApplied: number;
+    earning: number;
+}
+
 export interface ProcessedTechnician {
     id: number;
     name: string;
@@ -49,6 +62,8 @@ export interface ProcessedTechnician {
     companyRevenue: number;
     avgPerJob: number;
     adjustments: Adjustment[];
+    unprocessedAdjustments?: Adjustment[]; // For sub-admin current view
+    processedJobs: ProcessedJob[]; // CHANGED: from jobs: Job[]
 }
 
 export interface Rate {
@@ -100,4 +115,12 @@ export interface EmployeePayrollReport {
   publishedDate: string;
   reportData: ProcessedTechnician; // The data for this specific employee
   status: 'draft' | 'finalized';
+}
+
+export type NotificationType = 'success' | 'error' | 'info';
+
+export interface Notification {
+  id: number;
+  message: string;
+  type: NotificationType;
 }

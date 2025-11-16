@@ -1,56 +1,50 @@
-<div class="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center justify-center p-4">
-  <div class="w-full max-w-md">
-    <div class="text-center mb-10">
-      <h1 class="text-5xl font-bold text-white mb-2">👑 Prime Payroll</h1>
-      <p class="text-xl text-gray-400">Please sign in to your account</p>
+<div class="min-h-screen bg-brand-background flex flex-col justify-center items-center p-4 font-sans animate-fade-in">
+  <div class="w-full max-w-sm mx-auto">
+    <!-- Branding -->
+    <div class="text-center mb-8">
+      <img [src]="logo()" alt="Prime Communication Logo" class="w-64 mx-auto" />
     </div>
-
-    <div class="bg-brand-secondary rounded-xl shadow-2xl p-8">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <div class="space-y-6">
-          <div>
-            <label for="username" class="block text-sm font-medium text-gray-300">Username</label>
-            <input 
-              id="username"
-              formControlName="username"
-              type="text" 
-              class="mt-1 bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none"
-              placeholder="e.g., admin">
-          </div>
-          <div>
-            <label for="password" class="block text-sm font-medium text-gray-300">Password</label>
-            <input 
-              id="password"
-              formControlName="password"
-              type="password"
-              class="mt-1 bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none"
-              placeholder="••••••••">
-          </div>
+    
+    <!-- Form -->
+    <div class="bg-brand-surface p-8 border border-brand-border rounded-2xl shadow-sm w-full">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <div>
+          <label for="username" class="block text-sm font-medium text-brand-text-secondary mb-2">Username</label>
+          <input 
+            id="username"
+            formControlName="username"
+            type="text" 
+            class="w-full py-3 px-4 bg-brand-input-bg border border-brand-border rounded-lg text-brand-text-primary placeholder:text-gray-400 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-colors"
+            placeholder="Enter your username">
         </div>
-
+        <div>
+          <label for="password" class="block text-sm font-medium text-brand-text-secondary mb-2">Password</label>
+          <input 
+            id="password"
+            formControlName="password"
+            type="password"
+            class="w-full py-3 px-4 bg-brand-input-bg border border-brand-border rounded-lg text-brand-text-primary placeholder:text-gray-400 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-colors"
+            placeholder="••••••••">
+        </div>
+        
         @if (loginError(); as error) {
-          <div class="mt-4 text-center bg-red-900/50 border border-brand-accent text-red-300 p-3 rounded-md">
-            {{ error }}
+          <div class="bg-red-50 border-l-4 border-red-400 text-red-700 p-3 text-sm rounded">
+            <p>{{ error }}</p>
           </div>
         }
 
-        <div class="mt-8">
-          <button 
-            type="submit" 
-            [disabled]="loginForm.invalid || isLoading()"
-            class="w-full bg-brand-info hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center">
-            @if (isLoading()) {
-              <span class="animate-spin mr-2">⏳</span>
-              <span>Authenticating...</span>
-            } @else {
-               <span>Login</span>
-            }
-          </button>
-        </div>
+        <button 
+          type="submit" 
+          [disabled]="loginForm.invalid || isLoading()"
+          class="w-full bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-semibold py-3 rounded-lg transition-colors duration-200 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center">
+          @if (isLoading()) {
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <span>Signing In...</span>
+          } @else {
+             <span>Sign in</span>
+          }
+        </button>
       </form>
-    </div>
-     <div class="text-center mt-6">
-        <p class="text-sm text-gray-500">Contact administrator for account issues. (Hint: admin/admin)</p>
     </div>
   </div>
 </div>

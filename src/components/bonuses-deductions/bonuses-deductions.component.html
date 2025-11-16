@@ -1,18 +1,18 @@
 <div class="animate-fade-in">
   <div class="flex justify-between items-start mb-4">
     <div>
-        <h2 class="text-2xl font-bold">💸 Adjustments</h2>
-        <p class="text-gray-400">Manage one-time, recurring, and loan-based payroll adjustments.</p>
+        <h2 class="text-xl font-semibold text-brand-text-primary">Adjustments</h2>
+        <p class="text-brand-text-secondary">Manage one-time, recurring, and loan-based payroll adjustments.</p>
     </div>
   </div>
 
   <!-- Tabs -->
   <div class="mb-6">
-    <div class="border-b border-gray-700">
+    <div class="border-b border-brand-border">
       <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-        <button (click)="selectTab('oneTime')" [class]="activeTab() === 'oneTime' ? 'border-brand-info text-brand-info' : 'border-transparent text-gray-400'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">One-Time Adjustments</button>
-        <button (click)="selectTab('loans')" [class]="activeTab() === 'loans' ? 'border-brand-info text-brand-info' : 'border-transparent text-gray-400'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">Loans</button>
-        <button (click)="selectTab('recurring')" [class]="activeTab() === 'recurring' ? 'border-brand-info text-brand-info' : 'border-transparent text-gray-400'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">Recurring Deductions</button>
+        <button (click)="selectTab('oneTime')" [class]="activeTab() === 'oneTime' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text-secondary'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">One-Time Adjustments</button>
+        <button (click)="selectTab('loans')" [class]="activeTab() === 'loans' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text-secondary'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">Loans</button>
+        <button (click)="selectTab('recurring')" [class]="activeTab() === 'recurring' ? 'border-brand-accent text-brand-accent' : 'border-transparent text-brand-text-secondary'" class="whitespace-nowrap py-3 px-2 border-b-2 font-medium text-base">Recurring Deductions</button>
       </nav>
     </div>
   </div>
@@ -20,44 +20,85 @@
   <!-- Tab Content -->
   <div>
     @if (activeTab() === 'oneTime') {
-      <div class="flex justify-between items-center mb-4">
-        <p class="text-gray-300">Add a one-off bonus or chargeback assigned to a specific date.</p>
-        <button (click)="openModal('oneTime')" class="bg-brand-info hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Add One-Time</button>
+      <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+        <div>
+          <h3 class="text-lg font-semibold text-brand-text-primary">Unprocessed Adjustments</h3>
+          <p class="text-brand-text-secondary text-sm mt-1">Add or remove one-off bonuses and chargebacks for the current period.</p>
+        </div>
+        <button (click)="openModal('oneTime')" class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+          <span>Add Adjustment</span>
+        </button>
       </div>
-      <p class="text-center text-gray-500 py-16">One-time adjustments are assigned to a date and applied to the corresponding payroll. View applied adjustments in the 'Weekly Reports' tab.</p>
+      <div class="border border-brand-border rounded-lg max-h-[600px] overflow-y-auto">
+        <table class="w-full text-left">
+           <thead class="sticky top-0 bg-slate-50 z-10">
+            <tr>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Technician</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Date</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Type</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Description</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-right">Amount</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-brand-border">
+             @for(adj of unprocessedAdjustments(); track adj.id) {
+                <tr class="hover:bg-slate-50/70 group">
+                    <td class="p-4 font-medium text-brand-text-primary">{{ getTechName(adj.techId) }}</td>
+                    <td class="p-4 text-brand-text-primary">{{ adj.date | date:'shortDate' }}</td>
+                    <td class="p-4 text-brand-text-primary">
+                      <span class="px-2 py-1 text-xs font-semibold rounded-full" [class.bg-green-100]="adj.amount > 0" [class.text-green-800]="adj.amount > 0" [class.bg-red-100]="adj.amount < 0" [class.text-red-800]="adj.amount < 0">
+                        {{ adj.type }}
+                      </span>
+                    </td>
+                    <td class="p-4 text-brand-text-secondary">{{ adj.description }}</td>
+                    <td class="p-4 font-mono text-right font-semibold" [class.text-green-600]="adj.amount > 0" [class.text-red-600]="adj.amount < 0">{{ adj.amount | currency }}</td>
+                    <td class="p-4 text-center">
+                      <button (click)="deleteOneTimeAdjustment(adj.id)" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 font-bold py-1 px-3 rounded-md text-sm transition-colors">
+                        Delete
+                      </button>
+                    </td>
+                </tr>
+             } @empty {
+                <tr><td colspan="6" class="text-center text-brand-text-secondary py-16">No unprocessed one-time adjustments.</td></tr>
+             }
+          </tbody>
+        </table>
+       </div>
     }
 
     @if (activeTab() === 'loans') {
       <div class="flex justify-between items-center mb-4">
-        <p class="text-gray-300">Manage employee loans. Payments will be deducted weekly.</p>
-        <button (click)="openModal('loan')" class="bg-brand-info hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Add Loan</button>
+        <p class="text-brand-text-primary">Manage employee loans. Payments will be deducted weekly.</p>
+        <button (click)="openModal('loan')" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-4 rounded-lg">Add Loan</button>
       </div>
-       <div class="bg-gray-800 p-2 rounded-lg max-h-[600px] overflow-y-auto">
+       <div class="border border-brand-border rounded-lg max-h-[600px] overflow-y-auto">
         <table class="w-full text-left">
-           <thead class="sticky top-0 bg-gray-900 z-10">
+           <thead class="sticky top-0 bg-slate-50 z-10">
             <tr>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Description</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Balance</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Weekly Payment</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-center">Status</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Technician</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Description</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-right">Balance</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-right">Weekly Payment</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-center">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-700">
+          <tbody class="divide-y divide-brand-border">
              @for(loan of loans(); track loan.id) {
-                <tr class="hover:bg-gray-700">
-                    <td class="p-4 font-medium text-white">{{ getTechName(loan.techId) }}</td>
-                    <td class="p-4 text-gray-300">{{ loan.description }}</td>
-                    <td class="p-4 font-mono text-right text-white">{{ loan.remainingAmount | currency }} / {{ loan.totalAmount | currency }}</td>
-                    <td class="p-4 font-mono text-right text-red-400">-{{ loan.weeklyDeduction | currency }}</td>
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-medium text-brand-text-primary">{{ getTechName(loan.techId) }}</td>
+                    <td class="p-4 text-brand-text-primary">{{ loan.description }}</td>
+                    <td class="p-4 font-mono text-right text-brand-text-primary">{{ loan.remainingAmount | currency }} / {{ loan.totalAmount | currency }}</td>
+                    <td class="p-4 font-mono text-right text-red-600">-{{ loan.weeklyDeduction | currency }}</td>
                     <td class="p-4 text-center">
-                        <button (click)="toggleLoanStatus(loan)" [class]="loan.isActive ? 'bg-green-600' : 'bg-gray-600'" class="text-white font-bold py-1 px-3 rounded-md text-sm">
+                        <button (click)="toggleLoanStatus(loan)" [class]="loan.isActive ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'" class="text-white font-bold py-1 px-3 rounded-full text-sm w-20 transition-colors">
                           {{ loan.isActive ? 'Active' : 'Paused' }}
                         </button>
                     </td>
                 </tr>
              } @empty {
-                <tr><td colspan="5" class="text-center text-gray-500 py-16">No active loans.</td></tr>
+                <tr><td colspan="5" class="text-center text-brand-text-secondary py-16">No active loans.</td></tr>
              }
           </tbody>
         </table>
@@ -66,33 +107,33 @@
 
      @if (activeTab() === 'recurring') {
       <div class="flex justify-between items-center mb-4">
-        <p class="text-gray-300">Manage fixed deductions that apply to every payroll.</p>
-        <button (click)="openModal('recurring')" class="bg-brand-info hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Add Recurring</button>
+        <p class="text-brand-text-primary">Manage fixed deductions that apply to every payroll.</p>
+        <button (click)="openModal('recurring')" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-4 rounded-lg">Add Recurring</button>
       </div>
-       <div class="bg-gray-800 p-2 rounded-lg max-h-[600px] overflow-y-auto">
+       <div class="border border-brand-border rounded-lg max-h-[600px] overflow-y-auto">
         <table class="w-full text-left">
-           <thead class="sticky top-0 bg-gray-900 z-10">
+           <thead class="sticky top-0 bg-slate-50 z-10">
             <tr>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Description</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Weekly Amount</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-center">Status</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Technician</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary">Description</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-right">Weekly Amount</th>
+              <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary text-center">Status</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-700">
+          <tbody class="divide-y divide-brand-border">
              @for(adj of recurringAdjustments(); track adj.id) {
-                <tr class="hover:bg-gray-700">
-                    <td class="p-4 font-medium text-white">{{ getTechName(adj.techId) }}</td>
-                    <td class="p-4 text-gray-300">{{ adj.description }}</td>
-                    <td class="p-4 font-mono text-right text-red-400">{{ adj.weeklyAmount | currency }}</td>
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4 font-medium text-brand-text-primary">{{ getTechName(adj.techId) }}</td>
+                    <td class="p-4 text-brand-text-primary">{{ adj.description }}</td>
+                    <td class="p-4 font-mono text-right text-red-600">{{ adj.weeklyAmount | currency }}</td>
                     <td class="p-4 text-center">
-                        <button (click)="toggleRecurringStatus(adj)" [class]="adj.isActive ? 'bg-green-600' : 'bg-gray-600'" class="text-white font-bold py-1 px-3 rounded-md text-sm">
+                        <button (click)="toggleRecurringStatus(adj)" [class]="adj.isActive ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-600'" class="text-white font-bold py-1 px-3 rounded-full text-sm w-20 transition-colors">
                           {{ adj.isActive ? 'Active' : 'Paused' }}
                         </button>
                     </td>
                 </tr>
              } @empty {
-                <tr><td colspan="4" class="text-center text-gray-500 py-16">No recurring adjustments configured.</td></tr>
+                <tr><td colspan="4" class="text-center text-brand-text-secondary py-16">No recurring adjustments configured.</td></tr>
              }
           </tbody>
         </table>
@@ -103,57 +144,57 @@
 
 <!-- Modals -->
 @if (showModal(); as modalType) {
-  <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
+  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
     <!-- One-Time Adjustment Modal -->
     @if (modalType === 'oneTime') {
-      <div class="bg-brand-secondary rounded-lg shadow-2xl p-8 w-full max-w-md m-4">
-        <h2 class="text-2xl font-bold mb-6 text-white">Add One-Time Adjustment</h2>
+      <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg m-4 border border-brand-border">
+        <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">Add One-Time Adjustment</h2>
         <form [formGroup]="oneTimeForm" (ngSubmit)="saveOneTime()">
           <div class="space-y-4">
-            <select formControlName="techId" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
-            <input formControlName="date" type="date" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
-            <select formControlName="type" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700"><option>Bonus</option><option>Chargeback</option></select>
-            <input formControlName="description" placeholder="Description (e.g., Performance Bonus)" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
-            <input formControlName="amount" type="number" step="0.01" placeholder="Amount (e.g., 50.00)" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+            <select formControlName="techId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
+            <input formControlName="date" type="date" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
+            <select formControlName="type" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"><option>Bonus</option><option>Chargeback</option></select>
+            <input formControlName="description" placeholder="Description (e.g., Performance Bonus)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
+            <input formControlName="amount" type="number" step="0.01" placeholder="Amount (e.g., 50.00)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
           </div>
           <div class="flex justify-end gap-4 mt-8">
-            <button type="button" (click)="closeModal()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancel</button>
-            <button type="submit" [disabled]="oneTimeForm.invalid" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500">Save</button>
+            <button type="button" (click)="closeModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
+            <button type="submit" [disabled]="oneTimeForm.invalid || isSaving()" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-400">Save</button>
           </div>
         </form>
       </div>
     }
     <!-- Loan Modal -->
     @if (modalType === 'loan') {
-      <div class="bg-brand-secondary rounded-lg shadow-2xl p-8 w-full max-w-md m-4">
-        <h2 class="text-2xl font-bold mb-6 text-white">Create New Loan</h2>
+      <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg m-4 border border-brand-border">
+        <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">Create New Loan</h2>
         <form [formGroup]="loanForm" (ngSubmit)="saveLoan()">
           <div class="space-y-4">
-            <select formControlName="techId" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
-            <input formControlName="description" placeholder="Loan Description (e.g., Tool Advance)" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
-            <input formControlName="totalAmount" type="number" step="0.01" placeholder="Total Loan Amount" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
-            <input formControlName="weeklyDeduction" type="number" step="0.01" placeholder="Weekly Deduction Amount" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+            <select formControlName="techId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
+            <input formControlName="description" placeholder="Loan Description (e.g., Tool Advance)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
+            <input formControlName="totalAmount" type="number" step="0.01" placeholder="Total Loan Amount" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
+            <input formControlName="weeklyDeduction" type="number" step="0.01" placeholder="Weekly Deduction Amount" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
           </div>
           <div class="flex justify-end gap-4 mt-8">
-            <button type="button" (click)="closeModal()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancel</button>
-            <button type="submit" [disabled]="loanForm.invalid" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500">Save Loan</button>
+            <button type="button" (click)="closeModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
+            <button type="submit" [disabled]="loanForm.invalid || isSaving()" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-400">Save Loan</button>
           </div>
         </form>
       </div>
     }
      <!-- Recurring Deduction Modal -->
     @if (modalType === 'recurring') {
-       <div class="bg-brand-secondary rounded-lg shadow-2xl p-8 w-full max-w-md m-4">
-        <h2 class="text-2xl font-bold mb-6 text-white">Add Recurring Deduction</h2>
+       <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg m-4 border border-brand-border">
+        <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">Add Recurring Deduction</h2>
         <form [formGroup]="recurringForm" (ngSubmit)="saveRecurring()">
           <div class="space-y-4">
-            <select formControlName="techId" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
-            <input formControlName="description" placeholder="Description (e.g., Equipment Rental)" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
-            <input formControlName="weeklyAmount" type="number" step="0.01" placeholder="Weekly Deduction Amount" class="bg-gray-800 text-white p-3 rounded-md w-full border border-gray-700">
+            <select formControlName="techId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none"><option value="" disabled>Select Employee</option>@for(u of users(); track u.id){<option [value]="u.techId">{{u.name}}</option>}</select>
+            <input formControlName="description" placeholder="Description (e.g., Equipment Rental)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
+            <input formControlName="weeklyAmount" type="number" step="0.01" placeholder="Weekly Deduction Amount" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-accent outline-none">
           </div>
           <div class="flex justify-end gap-4 mt-8">
-            <button type="button" (click)="closeModal()" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg">Cancel</button>
-            <button type="submit" [disabled]="recurringForm.invalid" class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500">Save</button>
+            <button type="button" (click)="closeModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
+            <button type="submit" [disabled]="recurringForm.invalid || isSaving()" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-400">Save</button>
           </div>
         </form>
       </div>

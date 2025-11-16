@@ -1,12 +1,12 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { User } from '../models/payroll.model';
-import { MockDataService } from './mock-data.service';
+import { DatabaseService } from './database.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private dataService = inject(MockDataService);
+  private dataService = inject(DatabaseService);
   currentUser = signal<User | null>(null);
 
   login(username: string, password?: string): { success: boolean, message?: string } {

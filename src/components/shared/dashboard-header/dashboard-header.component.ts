@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
+import { Component, ChangeDetectionStrategy, input, output, inject } from '@angular/core';
+import { UiStateService } from '../../../services/ui-state.service';
 
 @Component({
   selector: 'app-dashboard-header',
@@ -7,11 +8,15 @@ import { Component, ChangeDetectionStrategy, input, output } from '@angular/core
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardHeaderComponent {
-  title = input.required<string>();
-  subtitle = input.required<string>();
+  private uiStateService = inject(UiStateService);
+  
+  pageTitle = input.required<string>();
+  description = input<string>();
+  showLogout = input<boolean>(false);
+  
   logout = output<void>();
 
-  onLogout(): void {
-    this.logout.emit();
+  toggleSidebar(): void {
+    this.uiStateService.sidebarOpen.update(v => !v);
   }
 }

@@ -1,30 +1,30 @@
 <div class="animate-fade-in">
   <div class="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
     <div>
-      <h2 class="text-2xl font-bold">📅 Weekly Reports</h2>
-      <p class="text-gray-400">Select a week and filter by day to view its summary and publish the payroll.</p>
+      <h2 class="text-xl font-semibold text-brand-text-primary">Process &amp; Analyze</h2>
+      <p class="text-brand-text-secondary">Select a week and filter by day to view its summary and publish the payroll.</p>
     </div>
     <div class="flex flex-col sm:flex-row gap-2">
       <button 
         (click)="downloadExcel()" 
         [disabled]="!reportForSelectedWeek() || reportForSelectedWeek()?.length === 0"
-        class="bg-brand-success hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-200 flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed">
-        <span>📄</span>
+        class="bg-white hover:bg-slate-50 text-brand-text-primary border border-brand-border font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-200 flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
         <span>Download Excel</span>
       </button>
        <button 
         (click)="publishPayroll()" 
         [disabled]="!reportForSelectedWeek() || reportForSelectedWeek()?.length === 0"
-        class="bg-brand-info hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-200 flex items-center justify-center gap-2 disabled:bg-gray-500 disabled:cursor-not-allowed">
-        <span>🚀</span>
-        <span>Create Payroll Draft</span>
+        class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors duration-200 flex items-center justify-center gap-2 disabled:bg-slate-400 disabled:cursor-not-allowed shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" /></svg>
+        <span>Publish Payroll</span>
       </button>
     </div>
   </div>
 
   <div class="mb-4">
-    <label for="week-select" class="block text-sm font-medium text-gray-300 mb-1">Select Payroll Week</label>
-    <select id="week-select" (change)="selectWeek($event)" [value]="selectedWeekId()" class="bg-gray-800 text-white p-3 rounded-md w-full md:w-1/2 border border-gray-700 focus:ring-2 focus:ring-brand-info outline-none">
+    <label for="week-select" class="block text-sm font-medium text-brand-text-secondary mb-1">Select Payroll Week</label>
+    <select id="week-select" (change)="selectWeek($event)" [value]="selectedWeekId()" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full md:w-1/2 border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
       <option value="" disabled>
         {{ availableWeeks().length > 0 ? 'Choose a week...' : 'Upload jobs to see available weeks' }}
       </option>
@@ -36,12 +36,12 @@
 
   @if (selectedWeekId()) {
     <div class="mt-4 mb-6 animate-fade-in">
-        <label class="block text-sm font-medium text-gray-300 mb-2">Filter by Day</label>
+        <label class="block text-sm font-medium text-brand-text-secondary mb-2">Filter by Day</label>
         <div class="flex flex-wrap gap-2">
             @for (day of dayFilters(); track day.dayIndex) {
                 <button (click)="toggleDay(day.dayIndex)" 
-                        [class]="selectedDays()[day.dayIndex] ? 'bg-brand-info text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'"
-                        class="px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-200 w-24">
+                        [class]="selectedDays()[day.dayIndex] ? 'bg-brand-primary text-white border-brand-accent' : 'bg-white text-brand-text-primary hover:bg-slate-100 border-brand-border'"
+                        class="px-4 py-2 text-sm font-semibold rounded-full transition-colors duration-200 w-24 border">
                     {{ day.dayName }} {{ day.dayOfMonth }}
                 </button>
             }
@@ -49,66 +49,65 @@
     </div>
   }
 
-
   @if (reportForSelectedWeek(); as report) {
     <!-- Report Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-gray-800 p-6 rounded-lg">
-            <div class="text-gray-400 text-sm">Total Payout to Technicians</div>
-            <div class="text-3xl font-bold text-brand-success">{{ reportSummary().totalPayout | currency }}</div>
+        <div class="bg-slate-50 p-6 rounded-lg border border-brand-border">
+            <div class="text-brand-text-secondary text-sm">Total Payout to Technicians</div>
+            <div class="text-3xl font-bold text-green-600">{{ reportSummary().totalPayout | currency }}</div>
         </div>
-        <div class="bg-gray-800 p-6 rounded-lg">
-            <div class="text-gray-400 text-sm">Final Company Revenue</div>
-            <div class="text-3xl font-bold text-white">{{ reportSummary().totalCompanyRevenue | currency }}</div>
+        <div class="bg-slate-50 p-6 rounded-lg border border-brand-border">
+            <div class="text-brand-text-secondary text-sm">Final Company Revenue</div>
+            <div class="text-3xl font-bold text-brand-text-primary">{{ reportSummary().totalCompanyRevenue | currency }}</div>
         </div>
-        <div class="bg-gray-800 p-6 rounded-lg">
-            <div class="text-gray-400 text-sm">Total Jobs Completed</div>
-            <div class="text-3xl font-bold text-white">{{ reportSummary().totalJobs }}</div>
+        <div class="bg-slate-50 p-6 rounded-lg border border-brand-border">
+            <div class="text-brand-text-secondary text-sm">Total Jobs Completed</div>
+            <div class="text-3xl font-bold text-brand-text-primary">{{ reportSummary().totalJobs }}</div>
         </div>
     </div>
 
     <!-- Detailed Report Table -->
-    <div class="bg-gray-800 p-2 rounded-lg">
+    <div class="border border-brand-border rounded-lg">
       <div class="max-h-[600px] overflow-y-auto">
         <table class="w-full text-left">
-          <thead class="sticky top-0 bg-gray-900 z-10">
+          <thead class="sticky top-0 bg-blue-50 z-10 border-b border-brand-border">
             <tr>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400">Technician</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Jobs</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Total Revenue</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Base Earnings</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Adjustments</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Final Payout</th>
-              <th class="p-4 text-sm font-semibold uppercase text-gray-400 text-right">Co. Revenue</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider">Technician</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Jobs</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Total Revenue</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Base Earnings</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Adjustments</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Final Payout</th>
+              <th class="p-4 text-sm font-semibold uppercase text-blue-800 tracking-wider text-right">Co. Revenue</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-700">
+          <tbody class="divide-y divide-brand-border">
             @for (tech of report; track tech.id) {
               @let adjTotal = getAdjustmentsTotal(tech);
               @let baseEarnings = tech.totalEarnings - adjTotal;
-              <tr class="hover:bg-gray-700">
+              <tr class="hover:bg-slate-50/70">
                 <td class="p-4">
-                    <p class="font-medium text-white">{{ tech.name }}</p>
-                    <p class="text-sm text-gray-400">#{{ tech.techId }}</p>
+                    <p class="font-medium text-brand-text-primary">{{ tech.name }}</p>
+                    <p class="text-sm text-brand-text-secondary">#{{ tech.techId }}</p>
                 </td>
-                <td class="p-4 text-right font-mono text-white">{{ tech.totalJobs }}</td>
-                <td class="p-4 text-right font-mono text-gray-300">{{ tech.totalRevenue | currency }}</td>
-                <td class="p-4 text-right font-mono text-gray-300">{{ baseEarnings | currency }}</td>
+                <td class="p-4 text-right font-mono text-brand-text-primary">{{ tech.totalJobs }}</td>
+                <td class="p-4 text-right font-mono text-brand-text-primary">{{ tech.totalRevenue | currency }}</td>
+                <td class="p-4 text-right font-mono text-brand-text-primary">{{ baseEarnings | currency }}</td>
                 <td 
                   class="p-4 text-right font-mono"
-                  [class.text-gray-500]="adjTotal === 0"
-                  [class.text-green-400]="adjTotal > 0"
-                  [class.text-red-400]="adjTotal < 0">
+                  [class.text-slate-500]="adjTotal === 0"
+                  [class.text-green-600]="adjTotal > 0"
+                  [class.text-red-600]="adjTotal < 0">
                   {{ adjTotal | currency }}
                 </td>
-                <td class="p-4 text-right font-mono text-brand-success font-bold">{{ tech.totalEarnings | currency }}</td>
-                <td class="p-4 text-right font-mono text-white font-bold">{{ tech.companyRevenue | currency }}</td>
+                <td class="p-4 text-right font-mono text-green-600 font-bold">{{ tech.totalEarnings | currency }}</td>
+                <td class="p-4 text-right font-mono text-brand-text-primary font-bold">{{ tech.companyRevenue | currency }}</td>
               </tr>
             }
              @if (report.length === 0) {
               <tr>
-                <td colspan="7" class="text-center text-gray-500 py-16">
-                  <h3 class="mt-4 text-xl font-semibold">No Jobs or Adjustments Found</h3>
+                <td colspan="7" class="text-center text-brand-text-secondary py-16">
+                  <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">No Jobs or Adjustments Found</h3>
                   <p class="mt-1">No data matches the selected day filters for this week.</p>
                 </td>
               </tr>
@@ -118,11 +117,13 @@
       </div>
     </div>
   } @else {
-    <div class="text-center py-20 text-gray-500">
-      <div class="text-6xl mb-4">
-        @if (allJobsProcessed()) { ✅ } @else { 📊 }
-      </div>
-      <h2 class="text-3xl font-bold">
+    <div class="text-center py-20 text-brand-text-secondary bg-slate-50/70 rounded-lg border-2 border-dashed border-brand-border">
+        @if (allJobsProcessed()) { 
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+        } @else { 
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" /></svg>
+        }
+      <h2 class="text-2xl font-bold text-brand-text-primary mt-4">
         @if (allJobsProcessed()) {
           All Jobs Processed
         } @else if (availableWeeks().length > 0) {
