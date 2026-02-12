@@ -1,0 +1,62 @@
+<div class="animate-fade-in space-y-8">
+  <div class="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Branding &amp; Settings</h2>
+      <p class="text-slate-500">Update your team's information and branding for paystubs.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="space-y-8">
+    <!-- Company Info -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+      <h3 class="text-lg font-semibold mb-4 text-slate-800">Your Company Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="companyName" class="block text-sm font-medium text-slate-500 mb-1">Company Name</label>
+          <input id="companyName" formControlName="companyName" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyPhone" class="block text-sm font-medium text-slate-500 mb-1">Phone Number</label>
+          <input id="companyPhone" formControlName="companyPhone" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyAddress1" class="block text-sm font-medium text-slate-500 mb-1">Address Line 1</label>
+          <input id="companyAddress1" formControlName="companyAddress1" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyEmail" class="block text-sm font-medium text-slate-500 mb-1">Email Address</label>
+          <input id="companyEmail" type="email" formControlName="companyEmail" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyAddress2" class="block text-sm font-medium text-slate-500 mb-1">Address Line 2</label>
+          <input id="companyAddress2" formControlName="companyAddress2" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Branding -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+        <h3 class="text-lg font-semibold mb-4 text-slate-800">Branding</h3>
+        <div class="flex items-center gap-6">
+            <img [src]="logoUrl()" alt="Your Logo" class="h-16 bg-slate-100 p-2 rounded-lg border border-slate-200">
+            <div>
+                <label for="logo-upload" class="bg-slate-100/50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-4 rounded-lg cursor-pointer text-sm">
+                    Upload New Logo
+                </label>
+                <input id="logo-upload" type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden">
+                <p class="text-xs text-slate-500 mt-2">Recommended size: 300x75px. Max file size: 2MB.</p>
+                @if (uploadMessage()) {
+                    <p class="text-sm mt-2" [class.text-green-600]="!uploadError()" [class.text-red-600]="uploadError()">{{ uploadMessage() }}</p>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save Button -->
+    <div class="flex justify-end">
+      <button type="submit" [disabled]="settingsForm.invalid" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+        Save Settings
+      </button>
+    </div>
+  </form>
+</div>

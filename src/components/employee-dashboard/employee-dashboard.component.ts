@@ -3,84 +3,106 @@ import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { DatabaseService } from '../../services/database.service';
 import { DashboardHeaderComponent } from '../shared/dashboard-header/dashboard-header.component';
-import { EmployeePayrollReport } from '../../models/payroll.model';
+import { EmployeePayrollReport, ProcessedJob, Adjustment } from '../../models/payroll.model';
 import { SettingsService } from '../../services/settings.service';
+import { PerformanceViewerComponent } from '../performance-viewer/performance-viewer.component';
+import { ChargebackHistoryComponent } from '../chargeback-history/chargeback-history.component';
+import { PaystubService } from '../../services/paystub.service';
+import { QcUploaderComponent } from '../qc-uploader/qc-uploader.component';
+import { TaxFormsComponent } from '../tax-forms/tax-forms.component';
 
 // To satisfy the TypeScript compiler for jsPDF and autoTable
 declare var jspdf: any;
+declare var XLSX: any;
+
+type EmployeeView = 'paystub' | 'performance' | 'chargebacks' | 'qcUploads' | '1099-forms';
 
 @Component({
   selector: 'app-employee-dashboard',
   standalone: true,
   templateUrl: './employee-dashboard.component.html',
-  imports: [CommonModule, DashboardHeaderComponent, CurrencyPipe, DatePipe],
+  imports: [CommonModule, DashboardHeaderComponent, PerformanceViewerComponent, ChargebackHistoryComponent, QcUploaderComponent, CurrencyPipe, DatePipe, TaxFormsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class EmployeeDashboardComponent {
   private authService = inject(AuthService);
   private dataService = inject(DatabaseService);
   private settingsService = inject(SettingsService);
-  private datePipe = inject(DatePipe);
-  private currencyPipe = inject(CurrencyPipe);
+  private paystubService = inject(PaystubService);
+  private datePipe: DatePipe;
+  private currencyPipe: CurrencyPipe;
   
-  logo = computed(() => this.settingsService.settings().logoUrl);
+  companySettings = this.settingsService.settings;
   currentUser = this.authService.currentUser;
+  activeView = signal<EmployeeView>('paystub');
   
+  maskedTin = computed(() => {
+    const tin = this.currentUser()?.tin;
+    if (!tin || tin.length < 4) return 'N/A';
+    return `***-**-${tin.slice(-4)}`;
+  });
+
   payrollHistory = computed(() => {
     const user = this.currentUser();
     if (!user) return [];
     return this.dataService.employeeReports()
       .filter(report => report.userId === user.id && report.status === 'finalized')
-      .sort((a, b) => new Date(b.publishedDate).getTime() - new Date(a.publishedDate).getTime());
+      .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   });
 
   selectedReportId = signal<string | null>(null);
 
   selectedReport = computed(() => {
+    const history = this.payrollHistory();
     const id = this.selectedReportId();
-    if (!id) return null;
-    return this.payrollHistory().find(r => r.id === id) ?? null;
+    if (!id) {
+      return history.length > 0 ? history[0] : null;
+    }
+    return history.find(r => r.id === id) ?? null;
   });
 
-  baseEarnings = computed(() => {
+  paystubData = computed(() => {
     const report = this.selectedReport();
-    if (!report) return 0;
-    const adjTotal = report.reportData.adjustments.reduce((sum, adj) => sum + adj.amount, 0);
-    return report.reportData.totalEarnings - adjTotal;
-  });
-
-  // For current, unprocessed work
-  unprocessedJobs = computed(() => {
     const user = this.currentUser();
-    if (!user) return [];
-    return this.dataService.jobs().filter(j => j.techId === user.techId);
-  });
+    if (!report || !user) return null;
 
-  private rateMap = computed(() => {
-    const user = this.currentUser();
-    if (!user || !user.rateCategoryId) return new Map<string, number>();
-    const category = this.dataService.rateCategories().find(rc => rc.id === user.rateCategoryId);
-    if (!category) return new Map<string, number>();
-    return new Map(category.rates.map(r => [r.taskCode.toLowerCase().trim(), r.rate]));
-  });
+    const data = report.reportData;
+    const ytdEarnings = this.dataService.employeeReports()
+      .filter(r => r.userId === user.id && new Date(r.endDate) <= new Date(report.endDate))
+      .reduce((sum, r) => sum + r.reportData.totalEarnings, 0);
 
-  unprocessedJobsWithEarnings = computed(() => {
-    const map = this.rateMap();
-    return this.unprocessedJobs().map(job => {
-      const rate = map.get(job.taskCode.toLowerCase().trim()) ?? 0;
-      const earning = rate * job.quantity;
-      return { ...job, rate, earning };
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  });
+    const jobEarnings = data.processedJobs.reduce((sum, job) => sum + job.earning, 0);
+    
+    const adjustments = data.adjustments;
+    const totalBonus = adjustments.filter(a => a.type === 'Bonus').reduce((sum, a) => sum + a.amount, 0);
+    const totalChargeback = adjustments.filter(a => a.type === 'Chargeback').reduce((sum, a) => sum + a.amount, 0);
+    const totalLoan = adjustments.filter(a => a.type === 'Loan').reduce((sum, a) => sum + a.amount, 0);
+    const itemizedDeductions = adjustments.filter(a => ['Rent', 'Fee', 'RepeatTC'].includes(a.type));
+    
+    const grossEarnings = jobEarnings + totalBonus;
+    const itemizedDeductionsTotal = itemizedDeductions.reduce((sum, a) => sum + a.amount, 0);
+    const totalDeductions = totalChargeback + totalLoan + itemizedDeductionsTotal;
+    const netPay = data.totalEarnings; // This is the final calculated amount
 
-  unprocessedSummary = computed(() => {
-    const jobs = this.unprocessedJobsWithEarnings();
     return {
-      totalJobs: jobs.length,
-      totalRevenue: jobs.reduce((sum, j) => sum + j.revenue, 0),
-      estimatedEarnings: jobs.reduce((sum, j) => sum + j.earning, 0)
+      report,
+      data,
+      ytdEarnings,
+      jobEarnings,
+      totalBonus,
+      totalChargeback,
+      totalLoan,
+      itemizedDeductions,
+      grossEarnings,
+      totalDeductions,
+      netPay
     };
   });
+
+  constructor() {
+    this.datePipe = inject(DatePipe);
+    this.currencyPipe = inject(CurrencyPipe);
+  }
 
   selectReport(id: string | null): void {
     this.selectedReportId.set(id);
@@ -90,110 +112,98 @@ export class EmployeeDashboardComponent {
     this.authService.logout();
   }
 
-  downloadReportAsPDF(report: EmployeePayrollReport) {
-    const { jsPDF } = jspdf;
-    const doc = new jsPDF();
+  downloadExcelReport() {
+    const stub = this.paystubData();
     const user = this.currentUser();
-    if (!user) return;
+    if (!stub || !user) return;
+
+    const { report, data } = stub;
+
+    const header = [
+        "Technician ID", "Technician Name", "Work Order #", "Task Code", 
+        "Cost Per", "Qty", "Cost", "Meter/ladder rent & software fee", 
+        "Repeat TC", "Loan", "Bonus / Training", "week salary"
+    ];
     
-    const data = report.reportData;
-    const baseEarnings = data.totalEarnings - data.adjustments.reduce((s, a) => s + a.amount, 0);
-    
-    // Header
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(20);
-    doc.text('Pay Statement', 105, 22, { align: 'center' });
+    const lineItems: any[] = [];
 
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Pay Period: ${this.datePipe.transform(report.startDate, 'mediumDate')} - ${this.datePipe.transform(report.endDate, 'mediumDate')}`, 105, 30, { align: 'center' });
+    // Add jobs as line items
+    for (const job of data.processedJobs) {
+        lineItems.push({
+            "Technician ID": user.techId,
+            "Technician Name": user.name,
+            "Work Order #": job.workOrder,
+            "Task Code": job.taskCode,
+            "Cost Per": job.rateApplied,
+            "Qty": job.quantity,
+            "Cost": job.earning,
+        });
+    }
 
-    // Employee Info
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Employee Information', 14, 45);
-    (doc as any).autoTable({
-        startY: 48,
-        body: [
-            ['Name', user.name, 'Tech ID', user.techId],
-            ['Email', user.email, 'Phone', user.phone],
-        ],
-        theme: 'plain',
-        styles: { fontSize: 10, cellPadding: 1.5 },
-        columnStyles: { 0: { fontStyle: 'bold' }, 2: { fontStyle: 'bold' } }
-    });
-
-    // Earnings Summary
-    const finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Payroll Summary', 14, finalY);
-    (doc as any).autoTable({
-        startY: finalY + 3,
-        body: [
-            ['Base Earnings from Jobs', this.currencyPipe.transform(baseEarnings)],
-            ['Total Adjustments', this.currencyPipe.transform(data.adjustments.reduce((s, a) => s + a.amount, 0))],
-        ],
-        theme: 'grid',
-        styles: { fontSize: 10, cellPadding: 2, halign: 'right' },
-        headStyles: { fillColor: [22, 160, 133] },
-        columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } },
-        didDrawPage: (data: any) => {
-            // Total Row
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.text('Final Payout', data.settings.margin.left, data.cursor.y + 10);
-            doc.text(this.currencyPipe.transform(report.reportData.totalEarnings) || '$0.00', data.table.width, data.cursor.y + 10, { align: 'right' });
+    // Add adjustments as line items
+    for (const adj of data.adjustments) {
+        const item: any = {
+            "Technician ID": user.techId,
+            "Technician Name": user.name,
+            "Work Order #": adj.description, // Use description for context
+        };
+        switch(adj.type) {
+            case 'Fee': item['Meter/ladder rent & software fee'] = adj.amount; break;
+            case 'RepeatTC': item['Repeat TC'] = adj.amount; break;
+            case 'Loan': item['Loan'] = adj.amount; break;
+            case 'Bonus': item['Bonus / Training'] = adj.amount; break;
+            // Other types like chargeback can be added here if needed
+            default: 
+                item['Task Code'] = adj.type;
+                item['Cost'] = adj.amount; // Put generic adjustments in 'Cost'
+                break;
         }
+        lineItems.push(item);
+    }
+    
+    // Add total row
+    if (lineItems.length > 0) {
+        lineItems[lineItems.length -1]['week salary'] = stub.netPay;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(lineItems, { header });
+
+    // Formatting
+    worksheet['!cols'] = [
+        { wch: 15 }, { wch: 25 }, { wch: 30 }, { wch: 20 }, { wch: 10 }, 
+        { wch: 8 }, { wch: 10 }, { wch: 30 }, { wch: 15 }, { wch: 10 },
+        { wch: 20 }, { wch: 15 }
+    ];
+    
+    const moneyFormat = { numFmt: "$#,##0.00" };
+    const integerFormat = { numFmt: "0" };
+
+    lineItems.forEach((_, rowIndex) => {
+        const r = rowIndex + 2; // 1-based index, plus header row
+        const colMap = { E: 'Cost Per', G: 'Cost', H: 'Meter/ladder rent & software fee', I: 'Repeat TC', J: 'Loan', K: 'Bonus / Training', L: 'week salary' };
+        Object.entries(colMap).forEach(([col, key]) => {
+            if (lineItems[rowIndex][key] !== undefined) {
+                worksheet[`${col}${r}`].z = moneyFormat.numFmt;
+            }
+        });
+        if(worksheet[`F${r}`]) worksheet[`F${r}`].z = integerFormat.numFmt;
     });
 
-    let tableY = (doc as any).lastAutoTable.finalY + 20;
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Paystub Details');
+    XLSX.writeFile(workbook, `Paystub_${report.startDate}_${report.endDate}.xlsx`);
+  }
 
-    // Adjustments
-    if (data.adjustments.length > 0) {
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Adjustments Breakdown', 14, tableY);
-        (doc as any).autoTable({
-            startY: tableY + 3,
-            head: [['Date', 'Type', 'Description', 'Amount']],
-            body: data.adjustments.map(adj => [
-                this.datePipe.transform(adj.date, 'shortDate'), 
-                adj.type, 
-                adj.description, 
-                this.currencyPipe.transform(adj.amount)
-            ]),
-            theme: 'striped',
-            headStyles: { fillColor: [44, 62, 80] },
-            styles: { fontSize: 9, cellPadding: 2 },
-            columnStyles: { 3: { halign: 'right' } },
-        });
-        tableY = (doc as any).lastAutoTable.finalY + 10;
-    }
+  downloadPaystubAsPDF() {
+    const stub = this.paystubData();
+    const user = this.currentUser();
+    if (!stub || !user) return;
 
-    // Jobs
-    if (data.processedJobs.length > 0) {
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Jobs Breakdown', 14, tableY);
-        (doc as any).autoTable({
-            startY: tableY + 3,
-            head: [['Date', 'Task Code', 'Qty', 'Revenue', 'Rate', 'Earning']],
-            body: data.processedJobs.map(job => [
-                this.datePipe.transform(job.date, 'shortDate'),
-                job.taskCode,
-                job.quantity,
-                this.currencyPipe.transform(job.revenue),
-                this.currencyPipe.transform(job.rateApplied),
-                this.currencyPipe.transform(job.earning),
-            ]),
-            theme: 'striped',
-            headStyles: { fillColor: [44, 62, 80] },
-            styles: { fontSize: 9, cellPadding: 2 },
-            columnStyles: { 2: { halign: 'right' }, 3: { halign: 'right' }, 4: { halign: 'right' }, 5: { halign: 'right' } },
-        });
-    }
-
-    doc.save(`Pay-Statement-${report.startDate}-to-${report.endDate}.pdf`);
+    this.paystubService.generatePaystubPDF(
+      stub.report,
+      user,
+      this.companySettings(),
+      stub.ytdEarnings
+    );
   }
 }

@@ -1,0 +1,107 @@
+<div class="animate-fade-in">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">QC Form Templates</h2>
+      <p class="text-slate-500 text-sm mt-1">Create and manage the templates for employee QC and self-install uploads.</p>
+    </div>
+    <button (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+      <span>New Form Template</span>
+    </button>
+  </div>
+  <div class="border border-slate-200 rounded-lg">
+    <div class="max-h-[60vh] overflow-y-auto">
+      <table class="w-full text-left">
+        <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+          <tr>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500">Template Name</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500">Sections</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500">Date Created</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-center">Status</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          @for (template of templates(); track template.id) {
+            <tr class="hover:bg-slate-50 group">
+              <td class="p-4 font-medium text-slate-800">{{ template.name }}</td>
+              <td class="p-4 text-slate-500">{{ template.sections.length }}</td>
+              <td class="p-4 text-slate-500">{{ template.dateCreated | date:'mediumDate' }}</td>
+              <td class="p-4 text-center">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full" [class.bg-green-100]="template.isActive" [class.text-green-800]="template.isActive" [class.bg-slate-200]="!template.isActive" [class.text-slate-600]="!template.isActive">
+                  {{ template.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="p-4 text-right">
+                <div class="flex justify-end gap-2">
+                  <button (click)="openModal(template)" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                  <button (click)="deleteTemplate(template)" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="text-center text-slate-500 py-16">
+                <h3 class="mt-4 text-xl font-semibold text-slate-800">No Form Templates Found</h3>
+                <p class="mt-1">Click 'New Form Template' to create the first one.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (showModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800 flex-shrink-0">{{ templateToEdit() ? 'Edit' : 'Create' }} Form Template</h2>
+      <form [formGroup]="templateForm" (ngSubmit)="saveTemplate()" class="flex flex-col flex-grow overflow-hidden">
+        <div class="space-y-4 overflow-y-auto pr-2 flex-grow">
+          <div>
+            <label for="template-name" class="block text-sm font-medium text-slate-700 mb-1.5">Template Name</label>
+            <input id="template-name" formControlName="name" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          </div>
+          <div class="flex items-center gap-2 pt-4">
+            <input id="template-isActive" formControlName="isActive" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <label for="template-isActive" class="text-sm font-medium text-slate-700">Make this template active and available to employees.</label>
+          </div>
+          <div class="pt-4 border-t border-slate-200">
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Form Sections</label>
+            <div formArrayName="sections" class="space-y-2">
+              @for (section of sections.controls; track $index) {
+                <div class="flex items-center gap-2">
+                  <input [formControlName]="$index" placeholder="e.g., Tap Picture, Ground Block Picture" class="bg-slate-50 text-slate-800 p-2 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                  <button type="button" (click)="removeSection($index)" class="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-md flex-shrink-0" title="Remove section">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" (click)="addSection()" class="mt-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+              Add Section
+            </button>
+          </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8 flex-shrink-0">
+          <button type="button" (click)="closeModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="templateForm.invalid || isSaving()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isSaving() ? 'Saving...' : 'Save Template' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showDeleteConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Deletion"
+    [message]="'Are you sure you want to permanently delete the template ' + templateToDelete()?.name + '? This action cannot be undone.'"
+    confirmText="Delete"
+    confirmStyle="danger"
+    (confirmed)="handleDelete($event)">
+  </app-confirmation-modal>
+}

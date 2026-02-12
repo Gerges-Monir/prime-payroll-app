@@ -1,0 +1,59 @@
+<div class="w-full max-w-4xl mx-auto">
+  <div class="flex justify-end gap-2 mb-4">
+     <button (click)="detailsClicked.emit()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm border border-slate-200">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 0 0 2 4.25v11.5A2.25 2.25 0 0 0 4.25 18h11.5A2.25 2.25 0 0 0 18 15.75V4.25A2.25 2.25 0 0 0 15.75 2H4.25ZM6.5 6a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7ZM6.5 9.5a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-7ZM6.5 13a.75.75 0 0 0 0 1.5h4a.75.75 0 0 0 0-1.5h-4Z" clip-rule="evenodd" /></svg>
+        View Details
+    </button>
+    <button (click)="downloadAsPdf()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v4.59L7.3 9.24a.75.75 0 0 0-1.1 1.02l3.25 3.5a.75.75 0 0 0 1.1 0l3.25-3.5a.75.75 0 1 0-1.1-1.02l-1.95 2.1V6.75Z" clip-rule="evenodd" /></svg>
+      Download as PDF
+    </button>
+  </div>
+
+  <div #formContainer class="p-8 bg-white border border-slate-300 rounded-lg shadow-lg font-sans">
+    <!-- Header -->
+    <div class="flex justify-between items-start pb-6 border-b border-slate-200">
+      <div>
+        <h1 class="text-3xl font-bold text-slate-800">Earnings Summary</h1>
+        <p class="text-slate-500">For Tax Year {{ year() }}</p>
+      </div>
+      <img [src]="payer().logoUrl" alt="Company Logo" class="h-16 object-contain">
+    </div>
+
+    <!-- Payer & Recipient Info -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+      <!-- Payer -->
+      <div>
+        <h2 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-3">Payer Information</h2>
+        <div class="space-y-3 text-sm">
+          <p><strong class="w-24 inline-block text-slate-500">Name:</strong> <span class="text-slate-800">{{ payer().name }}</span></p>
+          <p class="flex items-start"><strong class="w-24 inline-block text-slate-500 flex-shrink-0">Address:</strong> <span class="whitespace-pre-line text-slate-800">{{ payer().address }}</span></p>
+          <p><strong class="w-24 inline-block text-slate-500">TIN:</strong> <span class="text-slate-800">{{ payer().tin }}</span></p>
+        </div>
+      </div>
+      <!-- Recipient -->
+      <div>
+        <h2 class="text-lg font-semibold text-slate-700 border-b pb-2 mb-3">Recipient Information</h2>
+        <div class="space-y-3 text-sm">
+          <p><strong class="w-24 inline-block text-slate-500">Name:</strong> <span class="text-slate-800">{{ recipient().name }}</span></p>
+          <p class="flex items-start"><strong class="w-24 inline-block text-slate-500 flex-shrink-0">Address:</strong> <span class="whitespace-pre-line text-slate-800">{{ recipient().fullAddress }}</span></p>
+          <p><strong class="w-24 inline-block text-slate-500">SSN/TIN:</strong> <span class="text-slate-800">{{ recipient().tin }}</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compensation Summary -->
+    <div class="mt-8 pt-8 border-t-2 border-dashed border-slate-300">
+      <div class="bg-slate-100/70 rounded-lg p-6 text-center border border-slate-200">
+        <p class="text-sm font-medium uppercase tracking-wider text-slate-500">Total Year-to-Date Compensation</p>
+        <p class="text-4xl font-bold text-green-600 mt-2">{{ compensation() | currency:'USD':'symbol':'1.2-2' }}</p>
+      </div>
+    </div>
+
+    <!-- Footer Note -->
+    <div class="mt-8 text-center text-xs text-slate-400">
+      <p>This is a summary of nonemployee compensation paid to you during the tax year. This information is reported to the IRS.</p>
+      <p>This is not an official IRS form but contains the necessary information for your tax records.</p>
+    </div>
+  </div>
+</div>

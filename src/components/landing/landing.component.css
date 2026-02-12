@@ -1,0 +1,171 @@
+:host {
+    font-family: 'Inter', sans-serif;
+    display: block;
+}
+
+/* Custom background pattern for the hero section */
+.bg-grid-pattern {
+    background-image: linear-gradient(rgba(15, 23, 42, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
+    background-size: 2rem 2rem;
+}
+
+/* Custom Shadow for professional depth */
+.professional-shadow {
+    box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.1);
+}
+
+/* Scroll animation styles */
+.scroll-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-animate.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hero Text Animation */
+#motto-text {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+#motto-text.animate {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+#plug-animation-container {
+    opacity: 0;
+    transition: opacity 0.3s ease-in 0.3s;
+}
+#plug-animation-container.animate {
+    opacity: 1;
+}
+
+/* --- NEW 12-SECOND LOOPING ANIMATION --- */
+/* Total Duration: 12s */
+
+/* Initial Animation States */
+#cable-line, .connection-line {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+}
+#cable-plug {
+    transform: translateX(0);
+}
+#wifi-symbol, #globe-group {
+    opacity: 0;
+}
+#wifi-1, #wifi-2, #wifi-3 {
+    stroke-dashoffset: 32;
+}
+#wifi-1 { stroke-dasharray: 10; }
+#wifi-2 { stroke-dasharray: 20; }
+#wifi-3 { stroke-dasharray: 32; }
+
+
+/* Applying the looping animations */
+#plug-animation-container.animate #cable-line {
+    animation: draw-cable-loop 12s infinite ease-in-out;
+}
+#plug-animation-container.animate #cable-plug {
+    animation: plug-in-loop 12s infinite ease-in-out;
+}
+#plug-animation-container.animate #modem-group {
+    animation: modem-fade 12s infinite ease-in-out;
+}
+#plug-animation-container.animate #status-light {
+    animation: status-light-loop 12s infinite steps(1, end);
+}
+#plug-animation-container.animate #wifi-symbol {
+    animation: wifi-symbol-fade 12s infinite ease-in-out;
+}
+#plug-animation-container.animate #wifi-1 {
+    animation: wifi-1-loop 12s infinite ease-out;
+}
+#plug-animation-container.animate #wifi-2 {
+    animation: wifi-2-loop 12s infinite ease-out;
+}
+#plug-animation-container.animate #wifi-3 {
+    animation: wifi-3-loop 12s infinite ease-out;
+}
+
+/* Globe Animations */
+#plug-animation-container.animate #globe-group {
+    animation: globe-fade 12s infinite ease-in-out;
+}
+#plug-animation-container.animate #globe {
+    animation: globe-pulse 12s infinite ease-in-out;
+}
+#plug-animation-container.animate .connection-line {
+    animation: draw-lines-loop 12s infinite ease-in-out;
+}
+
+
+/* Keyframes for the 12-second loop */
+
+/* 0-1s: Cable draws */
+@keyframes draw-cable-loop {
+    0%, 92%, 100% { stroke-dashoffset: 100; }
+    8%, 91% { stroke-dashoffset: 0; }
+}
+
+/* 1-2s: Plug moves into modem */
+@keyframes plug-in-loop {
+    0%, 8%, 92%, 100% { transform: translateX(0); }
+    16%, 91% { transform: translateX(30px); }
+}
+
+/* Modem is visible from 1s to 7s */
+@keyframes modem-fade {
+    0%, 9%, 59%, 100% { opacity: 0; }
+    10%, 58% { opacity: 1; }
+}
+
+/* 2s: Light turns on */
+@keyframes status-light-loop {
+    0%, 16%, 58%, 100% { fill: #f87171; }
+    17%, 57% { fill: #4ade80; }
+}
+
+/* 2.5s: Wifi appears */
+@keyframes wifi-symbol-fade {
+    0%, 20%, 55%, 100% { opacity: 0; }
+    21%, 54% { opacity: 1; }
+}
+
+/* 3-4.5s: Wifi arcs draw */
+@keyframes wifi-1-loop {
+    0%, 25%, 50%, 100% { stroke-dashoffset: 10; }
+    30%, 45% { stroke-dashoffset: 0; }
+}
+@keyframes wifi-2-loop {
+    0%, 28%, 47%, 100% { stroke-dashoffset: 20; }
+    33%, 42% { stroke-dashoffset: 0; }
+}
+@keyframes wifi-3-loop {
+    0%, 31%, 44%, 100% { stroke-dashoffset: 32; }
+    36%, 39% { stroke-dashoffset: 0; }
+}
+
+/* 7s: Globe fades in */
+@keyframes globe-fade {
+    0%, 60%, 95%, 100% { opacity: 0; transform: scale(0.8); }
+    65%, 90% { opacity: 1; transform: scale(1); }
+}
+
+/* 7.5s: Globe pulses */
+@keyframes globe-pulse {
+    0%, 65% { transform: scale(1); transform-origin: center; }
+    75% { transform: scale(1.05); transform-origin: center; }
+    85% { transform: scale(1); transform-origin: center; }
+}
+
+/* 8-9s: Connection lines draw */
+@keyframes draw-lines-loop {
+    0%, 70%, 90%, 100% { stroke-dashoffset: 100; }
+    75%, 85% { stroke-dashoffset: 0; }
+}

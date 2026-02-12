@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
-export type AdminTab = 'dashboard' | 'upload' | 'users' | 'rates' | 'publish' | 'analytics' | 'jobs' | 'assign' | 'history' | 'settings';
+// FIX: Add 'manageCompanies' to allow it as a valid tab in the admin dashboard.
+export type AdminTab = 'dashboard' | 'upload' | 'gloFiberUpload' | 'brightspeedEntry' | 'users' | 'rates' | 'publish' | 'analytics' | 'jobs' | 'history' | 'settings' | 'paystubs' | 'performance' | 'summary' | 'chargebacks' | 'chargebackHistory' | 'supervisors' | 'applications' | 'jobOpenings' | 'teamAnalysis' | 'primePerformance' | 'primePerformanceTracking' | 'qcTemplates' | 'qcSubmissions' | 'revenueAnalysis' | '1099-forms' | 'manageCompanies';
 
 
 @Injectable({

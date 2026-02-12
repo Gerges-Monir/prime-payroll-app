@@ -1,0 +1,202 @@
+<!-- 
+  This component is a visual template for generating a performance report image.
+  It takes techData (from Excel) and perfData (calculated scores) as inputs.
+  It is designed to be rendered in a hidden container and captured by html2canvas.
+-->
+<div class="w-[1200px] h-[1400px] bg-white p-6 font-sans flex flex-col text-gray-800 text-xs">
+    <!-- Header -->
+    <div class="text-center mb-2">
+      <h1 class="text-base font-bold">
+        {{ perfData().monthName }} SCORE ANALYSIS: Tech #{{ techData()['Tech #'] }} - {{ techData()['Name'] }}
+      </h1>
+      <h2 class="text-sm">
+        Tier {{ techData()['Tier'] }} | Rank: {{ techData()['RANK'] }} | Total Rating: {{ techData()['TOTAL RATING'] }}
+      </h2>
+    </div>
+
+    <div class="flex-grow grid grid-cols-2 gap-x-4 gap-y-2" style="grid-template-rows: 160px 160px 200px 420px 200px;">
+        <!-- Points Summary (Row 1, Col 1) -->
+        <div class="border p-2 flex flex-col items-center justify-start">
+            <h3 class="font-bold text-sm">POINTS SUMMARY (Out of 105 Total)</h3>
+            <div class="flex items-center justify-center gap-4 mt-2">
+                <span class="text-center">Earned<br><strong class="text-lg">{{ perfData().total_points }} pts</strong></span>
+                <div class="relative w-28 h-28 rounded-full flex items-center justify-center" [style.background]="'conic-gradient(#4CAF50 0% ' + perfData().utilization * 360 + 'deg, #F44336 ' + perfData().utilization * 360 + 'deg 360deg)'">
+                    <div class="absolute w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center text-center">
+                        <span class="text-lg font-bold text-blue-600">{{ (perfData().utilization * 100).toFixed(1) }}%</span>
+                        <span class="text-[10px] leading-tight">of 105 total</span>
+                    </div>
+                </div>
+                <span class="text-center">Missing<br><strong class="text-lg">{{ 105 - perfData().total_points }} pts</strong></span>
+            </div>
+        </div>
+
+        <!-- KPIs Performance (Row 1, Col 2) -->
+        <div class="border p-2">
+            <h3 class="font-bold text-sm text-center">COMPREHENSIVE KPIs PERFORMANCE (All Metrics)</h3>
+            <div class="w-full h-full relative">
+                <!-- Grid Lines -->
+                <div class="absolute top-[25%] left-0 right-0 h-px bg-gray-200"><span class="absolute -left-5 -translate-y-1/2 text-gray-500">0.04</span></div>
+                <div class="absolute top-1/2 left-0 right-0 h-px bg-gray-200"><span class="absolute -left-5 -translate-y-1/2 text-gray-500">0.00</span></div>
+                <div class="absolute top-[75%] left-0 right-0 h-px bg-gray-200"><span class="absolute -left-5 -translate-y-1/2 text-gray-500">-0.04</span></div>
+                <span class="absolute top-1/2 -left-12 -translate-y-1/2 text-gray-500 -rotate-90">Performance Score (%)</span>
+                <!-- Line -->
+                <div class="absolute top-1/2 left-4 right-4 h-0.5 bg-gray-600"></div>
+                <!-- Points and Labels -->
+                <div class="absolute inset-0 flex justify-around items-center px-8">
+                  @for (metric of ['TS', 'Pos Comp', 'On Time', 'NPS', 'OSAT', 'SMS', '7D Reps IN/COS', '7D Reps TC', '30D IN/COS', '30D TC']; track metric) {
+                    <div class="flex flex-col items-center relative">
+                        @let metricData = getMetricData(metric);
+                        <span class="text-[10px] font-semibold absolute bottom-full mb-8">
+                            @if (metricData) {
+                                {{ metricData.key.includes('%') ? (metricData.value.actual * 100).toFixed(1) + '%' : metricData.value.actual.toFixed(1) }}
+                            } @else {
+                                N/A
+                            }
+                        </span>
+                        <div class="w-1.5 h-1.5 bg-gray-600 rounded-full"></div>
+                        <span class="text-[8px] mt-2 -rotate-45 origin-top-left whitespace-nowrap">{{ metric }}</span>
+                    </div>
+                  }
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Goals Status (Row 2, Col 1-2) -->
+        <div class="col-span-2 border p-2">
+            <h3 class="font-bold text-sm text-center mb-1">METRICS GOALS STATUS (Current % + Points)</h3>
+            <div class="flex justify-around items-end h-[110px] gap-1 px-1">
+              @for (metric of perfData().detailed; track metric.key) {
+                <div class="h-full w-full flex flex-col items-center justify-end">
+                    <div class="relative w-full h-full flex items-end justify-center rounded-sm" [class]="metric.value.points > 0 ? 'bg-green-500' : 'bg-red-500'">
+                        <div class="text-white text-[8px] font-bold text-center leading-none p-0.5">
+                            <span>{{ metric.value.points > 0 ? '✓' : 'x' }}</span><br>
+                            <span>{{ metric.key.includes('%') ? (metric.value.actual * 100).toFixed(1) + '%' : metric.value.actual.toFixed(1) }}</span><br>
+                            <span>{{ metric.value.points }}/{{ metric.value.max }} pts</span>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-center mt-1 h-6">{{ metric.key.replace(' %', '').replace('Positive ', 'Pos ').replace('SMS Text Compliance', 'SMS') }}</div>
+                </div>
+              }
+            </div>
+        </div>
+
+        <!-- Points Breakdown (Row 3, Col 1-2) -->
+        <div class="col-span-2 border p-2 flex flex-col">
+            <h3 class="font-bold text-sm text-center mb-1">POINTS BREAKDOWN BY METRIC</h3>
+            <div class="flex-grow flex justify-around items-end gap-2 px-1 text-xs relative pt-4">
+                 @for (i of [14, 12, 10, 8, 6, 4, 2, 0]; track i) {
+                   <div class="absolute left-0 right-0 h-px bg-gray-200" [style.bottom]="(i/15*100) + '%'">
+                     <span class="absolute -left-6 -translate-y-1/2 text-gray-500">{{ i }}</span>
+                   </div>
+                 }
+                 <span class="absolute top-1/2 -left-12 -translate-y-1/2 text-gray-500 -rotate-90">Points</span>
+                @for (metric of perfData().detailed; track metric.key) {
+                    <div class="h-full w-full flex flex-col items-center justify-end">
+                        <div class="relative w-full h-full flex items-end justify-center gap-px">
+                             @if(metric.value.max > 0) {
+                                <span class="absolute bottom-full mb-1 left-0 right-0 text-center text-slate-700 font-bold text-[10px]">
+                                    {{ (metric.value.points / metric.value.max * 100).toFixed(0) }}%
+                                </span>
+                            }
+                            <div class="relative w-1/2 bg-green-500" [style.height.%]="(metric.value.points / 15) * 100"></div>
+                            <div class="relative w-1/2 bg-sky-300" [style.height.%]="(metric.value.max / 15) * 100">
+                                @if(metric.value.points < metric.value.max && metric.value.max > 0) {
+                                    <span class="absolute top-0.5 left-1/2 -translate-x-1/2 text-sky-800 font-bold text-[9px] opacity-80">+{{ metric.value.max - metric.value.points }}</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="text-[9px] text-center mt-1 h-6">{{ metric.key.replace(' %', '').replace('Positive ', 'Pos ').replace('SMS Text Compliance', 'SMS') }}</div>
+                    </div>
+                }
+                <div class="absolute top-0 right-0 text-[10px] p-1">
+                    <div class="flex items-center"><div class="w-3 h-3 bg-green-500 mr-1"></div>Points Earned</div>
+                    <div class="flex items-center"><div class="w-3 h-3 bg-sky-300 mr-1"></div>Max Possible</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Stats (Row 4, Col 1) -->
+        <div class="border p-2 bg-cyan-50/50">
+            <h3 class="font-bold text-sm text-center border-b border-cyan-200 pb-1 mb-1">JOB & REPEAT STATISTICS</h3>
+            <div class="text-[11px] space-y-1">
+                <p><strong>JOBS SUMMARY:</strong></p>
+                <ul class="list-disc list-inside pl-2">
+                    <li>Closed Jobs: {{ techData()['Closed'] || 0 }}</li>
+                    <li>Total Jobs: {{ techData()['Jobs'] || 0 }}</li>
+                </ul>
+                <p><strong>7-DAY REPEATS:</strong></p>
+                <ul class="list-disc list-inside pl-2">
+                    <li>IN/COS Repeats: {{ techData()['7 Day IN/COS Repeats'] || 0 }}</li>
+                    <li>IN/COS Truck Rolls: {{ techData()["7 Day IN/COS TR's"] || 0 }}</li>
+                    <li>TC Repeats: {{ techData()['7 Day TC Repeats'] || 0 }}</li>
+                    <li>TC Truck Rolls: {{ techData()["7 Day TC TR's"] || 0 }}</li>
+                </ul>
+                <p><strong>30-DAY REPEATS:</strong></p>
+                 <ul class="list-disc list-inside pl-2">
+                    <li>IN/COS Repeats: {{ techData()['30 Day IN/COS Repeats'] || 0 }}</li>
+                    <li>IN/COS Truck Rolls: {{ techData()['30 Day IN/COS Truck Rolls'] || 0 }}</li>
+                    <li>TC Repeats: {{ techData()['30 Day TC Repeats'] || 0 }}</li>
+                    <li>TC Truck Rolls: {{ techData()['30 Day TC Truck Rolls'] || 0 }}</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Improvement Opps (Row 4, Col 2) -->
+        <div class="border p-2 flex flex-col">
+            <h3 class="font-bold text-sm text-center mb-2">IMPROVEMENT OPPORTUNITIES</h3>
+            <div class="flex-grow flex flex-col justify-start gap-1.5 text-[10px] overflow-hidden">
+                @for (opp of perfData().improvementOpportunities; track opp.tierLabel) {
+                    <div class="flex items-center gap-2">
+                        <!-- Bar and its label -->
+                        <div class="relative flex-grow h-4 flex items-center bg-slate-200 rounded-sm">
+                            <div class="h-full bg-orange-400 rounded-sm" [style.width.%]="(opp.points_available / 6) * 100"></div>
+                            <span class="absolute left-1.5 text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.5)] text-[9px] leading-tight">{{ opp.tierLabel }} (+{{ opp.points_available }} pts)</span>
+                        </div>
+                        <!-- Current vs Target text block -->
+                        <div class="w-24 flex-shrink-0 text-[9px] bg-slate-100 border p-0.5 rounded-sm text-center">
+                            {{ opp.metric.includes('%') ? (opp.current*100).toFixed(1)+'%' : opp.current.toFixed(1) }} 
+                            <span class="font-bold text-orange-600">→</span> 
+                            {{ opp.lower_better ? '≤' : '≥' }}{{ opp.metric.includes('%') ? (opp.target*100).toFixed(1)+'%' : opp.target.toFixed(1) }}
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Performance Summary (Row 5, Col 1-2) -->
+        <div class="col-span-2 border p-2 bg-cyan-50/50">
+             <h3 class="font-bold text-sm text-center border-b border-cyan-200 pb-1 mb-1">{{ perfData().monthName }} PERFORMANCE SUMMARY - Tech #{{ techData()['Tech #'] }} - {{ techData()['Name'] }}</h3>
+             <div class="grid grid-cols-3 gap-4 text-xs">
+                 <div>
+                    <p><strong>OVERALL PERFORMANCE:</strong></p>
+                    <ul class="list-disc list-inside pl-2">
+                        <li>Total Points Earned: {{ perfData().total_points }}/105</li>
+                        <li>Points Utilization: {{ (perfData().utilization * 100).toFixed(1) }}%</li>
+                        <li>Overall Rank: #{{ techData()['RANK'] }}</li>
+                        <li>Total Rating: {{ techData()['TOTAL RATING'] }}</li>
+                        <li>Current Tier: {{ techData()['Tier'] }}</li>
+                        <li>Metrics at Maximum: {{ perfData().maxMetrics }}/{{ perfData().totalMetrics }}</li>
+                    </ul>
+                 </div>
+                 <div>
+                    <p><strong>IMPROVEMENT NEEDED:</strong></p>
+                    <ul class="list-disc list-inside pl-2">
+                        <li>Missing Points: {{ 105 - perfData().total_points }}</li>
+                        <li>Improvement Areas: {{ perfData().totalMetrics - perfData().maxMetrics }}</li>
+                    </ul>
+                 </div>
+                 <div>
+                    <p><strong>TOP 3 PRIORITIES:</strong></p>
+                    <ol class="list-decimal list-inside pl-2">
+                        @for (prio of perfData().top3Priorities; track $index) {
+                            <li>
+                                {{ prio.tierLabel }}: +{{ prio.points_available }} pts<br>
+                                <span class="pl-3">Current: {{ prio.metric.includes('%') ? (prio.current*100).toFixed(1)+'%' : prio.current.toFixed(1) }} → Target: {{ prio.lower_better ? '≤' : '≥' }}{{ prio.metric.includes('%') ? (prio.target*100).toFixed(1)+'%' : prio.target.toFixed(1) }}</span>
+                            </li>
+                        }
+                    </ol>
+                 </div>
+             </div>
+        </div>
+    </div>
+</div>

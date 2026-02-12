@@ -1,4 +1,4 @@
-<div class="flex min-h-screen bg-brand-background font-sans">
+<div class="flex flex-grow font-sans">
   <app-sidebar [tabs]="tabs" [activeTab]="activeTab()" (tabSelected)="selectTab($event)" (logout)="logout()"></app-sidebar>
   
   <div class="flex-1 flex flex-col md:ml-64 transition-all duration-300">
@@ -6,7 +6,8 @@
       <!-- Header -->
       <app-dashboard-header 
         pageTitle="Admin Dashboard"
-        description="Manage your payroll system">
+        description="Manage your payroll system"
+        (logoClicked)="selectTab('dashboard')">
       </app-dashboard-header>
 
       <!-- Main Content Area -->
@@ -19,58 +20,96 @@
             <!-- Quick Links -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <!-- Manage Employees Card -->
-              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
-                <div class="bg-blue-100 text-blue-800 p-3 rounded-lg">
+              <div class="bg-white p-6 rounded-lg border border-slate-200 flex flex-col items-start gap-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-blue-100 text-blue-600 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 006-6v-1a6 6 0 00-9-5.197M12 10.25a4 4 0 110-5.292" /></svg>
                 </div>
                 <div class="flex-grow">
-                  <h3 class="font-semibold text-lg text-brand-text-primary">Manage Employees</h3>
-                  <p class="text-sm text-brand-text-secondary mt-1">Add, edit, or remove employee and sub-admin accounts.</p>
+                  <h3 class="font-semibold text-lg text-slate-800">Manage Employees</h3>
+                  <p class="text-sm text-slate-500 mt-1">Add, edit, or remove employee and sub-admin accounts.</p>
                 </div>
-                <button (click)="selectTab('users')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                <button (click)="selectTab('users')" class="text-sm font-semibold text-blue-600 hover:text-blue-700 mt-3 group">
                   Go to Employees <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
                 </button>
               </div>
 
               <!-- Manage Rates Card -->
-              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
-                <div class="bg-green-100 text-green-800 p-3 rounded-lg">
+              <div class="bg-white p-6 rounded-lg border border-slate-200 flex flex-col items-start gap-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-green-100 text-green-600 p-3 rounded-lg">
                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                 </div>
                 <div class="flex-grow">
-                  <h3 class="font-semibold text-lg text-brand-text-primary">Manage Rates</h3>
-                  <p class="text-sm text-brand-text-secondary mt-1">Define rate categories and upload payment rates for tasks.</p>
+                  <h3 class="font-semibold text-lg text-slate-800">Manage Rates</h3>
+                  <p class="text-sm text-slate-500 mt-1">Define rate categories and upload payment rates for tasks.</p>
                 </div>
-                <button (click)="selectTab('rates')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                <button (click)="selectTab('rates')" class="text-sm font-semibold text-blue-600 hover:text-blue-700 mt-3 group">
                   Go to Rates <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
                   </button>
               </div>
 
               <!-- View Analytics Card -->
-              <div class="bg-brand-surface p-6 rounded-lg border border-brand-border flex flex-col items-start gap-4 hover:shadow-lg transition-shadow duration-300">
-                <div class="bg-purple-100 text-purple-800 p-3 rounded-lg">
+              <div class="bg-white p-6 rounded-lg border border-slate-200 flex flex-col items-start gap-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-sky-100 text-sky-600 p-3 rounded-lg">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
                 </div>
                 <div class="flex-grow">
-                  <h3 class="font-semibold text-lg text-brand-text-primary">Process & Analyze</h3>
-                  <p class="text-sm text-brand-text-secondary mt-1">Analyze weekly data and publish payrolls for your team.</p>
+                  <h3 class="font-semibold text-lg text-slate-800">Process & Analyze</h3>
+                  <p class="text-sm text-slate-500 mt-1">Analyze weekly data and publish payrolls for your team.</p>
                 </div>
-                   <button (click)="selectTab('analytics')" class="text-sm font-semibold text-brand-primary hover:text-brand-accent mt-3 group">
+                   <button (click)="selectTab('analytics')" class="text-sm font-semibold text-blue-600 hover:text-blue-700 mt-3 group">
                      Go to Analytics <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
                     </button>
+              </div>
+
+              <!-- Revenue Analysis Card -->
+              <div class="bg-white p-6 rounded-lg border border-slate-200 flex flex-col items-start gap-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-rose-100 text-rose-600 p-3 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="font-semibold text-lg text-slate-800">Revenue Analysis</h3>
+                  <p class="text-sm text-slate-500 mt-1">Analyze company revenue, payouts, and technician profitability.</p>
+                </div>
+                <button (click)="selectTab('revenueAnalysis')" class="text-sm font-semibold text-blue-600 hover:text-blue-700 mt-3 group">
+                  Go to Revenue Analysis <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </button>
+              </div>
+
+               <!-- Performance Tracking Card -->
+              <div class="bg-white p-6 rounded-lg border border-slate-200 flex flex-col items-start gap-4 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all">
+                <div class="bg-purple-100 text-purple-600 p-3 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+                  </svg>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="font-semibold text-lg text-slate-800">Performance Tracking</h3>
+                  <p class="text-sm text-slate-500 mt-1">Analyze individual and company-wide performance trends over time.</p>
+                </div>
+                <button (click)="selectTab('primePerformanceTracking')" class="text-sm font-semibold text-blue-600 hover:text-blue-700 mt-3 group">
+                  Go to Tracking <span class="group-hover:translate-x-1 transition-transform inline-block">→</span>
+                </button>
               </div>
             </div>
           </div>
         }
 
         <div [class.hidden]="activeTab() === 'dashboard'">
-          <div class="bg-brand-surface p-6 rounded-lg border border-brand-border">
+          <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
               <!-- Upload Payroll Tab -->
               @if (activeTab() === 'upload') {
                 <app-file-upload 
                   title="Upload Payroll" 
                   description="Upload the weekly jobs report to get started.">
                 </app-file-upload>
+              }
+               <!-- Glo Fiber Upload Tab -->
+              @if (activeTab() === 'gloFiberUpload') {
+                <app-glo-fiber-upload (createUser)="openCreateUserModal($event)"></app-glo-fiber-upload>
+              }
+              <!-- Brightspeed Manual Entry -->
+              @if (activeTab() === 'brightspeedEntry') {
+                <app-brightspeed-manual-entry></app-brightspeed-manual-entry>
               }
               <!-- Manage Jobs Tab -->
               @if (activeTab() === 'jobs') {
@@ -82,53 +121,76 @@
                 <div>
                   <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
                     <div>
-                      <h2 class="text-xl font-semibold text-brand-text-primary">Manage Employees</h2>
-                      <p class="text-brand-text-secondary text-sm mt-1">Add, edit, or remove users from the system.</p>
+                      <h2 class="text-xl font-semibold text-slate-800">Manage Employees</h2>
+                      <p class="text-slate-500 text-sm mt-1">Add, edit, or remove users from the system.</p>
                     </div>
                     <button 
                       (click)="openNewUserModal()" 
-                      class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-sm hover:shadow-md">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                      class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transform transition-all">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5-H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                       <span>Add Employee</span>
                     </button>
                   </div>
-                  <div class="border border-brand-border rounded-lg">
+                  <div class="border border-slate-200 rounded-lg">
                     <div class="max-h-[60vh] overflow-y-auto">
                       <table class="w-full text-left">
-                        <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border">
+                        <thead class="sticky top-0 bg-slate-50 z-10 border-b border-slate-200">
                           <tr>
-                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Name</th>
-                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Details</th>
-                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Rate Category</th>
-                            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Actions</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider">Name</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider">Details</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider">Rate Category</th>
+                            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody class="divide-y divide-brand-border">
+                        <tbody class="divide-y divide-slate-200">
                           @for (user of users(); track user.id) {
-                            <tr class="hover:bg-slate-50/70 group transition-colors">
+                            <tr class="hover:bg-slate-50 group">
                               <td class="p-4">
-                                <p class="font-medium text-brand-text-primary">{{ user.name }}</p>
-                                <p class="text-sm text-brand-text-secondary">#{{ user.techId }} | {{ user.role }}</p>
+                                <p class="font-medium text-slate-800">{{ user.name }}</p>
+                                <div class="flex items-center gap-2">
+                                  <p class="text-sm text-slate-500">#{{ user.techId }} | {{ user.role }}</p>
+                                  @if (needsActivation(user)) {
+                                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Needs Activation</span>
+                                  }
+                                </div>
                               </td>
                               <td class="p-4">
-                                <p class="text-sm text-brand-text-primary">{{ user.email }}</p>
-                                <p class="text-sm text-brand-text-secondary">{{ user.phone }}</p>
+                                @if (hasInvalidEmail(user)) {
+                                  <div class="group relative" title="This placeholder email must be updated before paystubs can be sent.">
+                                    <p class="text-sm font-semibold text-red-600">{{ user.email }}</p>
+                                    <p class="text-xs text-red-600">Action Required: Update Email</p>
+                                  </div>
+                                } @else {
+                                  <p class="text-sm text-slate-800">{{ user.email }}</p>
+                                }
+                                <p class="text-sm text-slate-500 mt-1">{{ user.phone }}</p>
                               </td>
-                              <td class="p-4 text-brand-text-primary">{{ getRateCategoryName(user.rateCategoryId) }}</td>
+                              <td class="p-4 text-slate-800">
+                                @let rateInfo = getEffectiveRateCategoryInfo(user);
+                                <span>{{ rateInfo.name }}</span>
+                                @if (rateInfo.isInherited) {
+                                  <span class="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800" title="Inherited from manager">Inherited</span>
+                                }
+                              </td>
                               <td class="p-4 text-right">
                                 <div class="flex justify-end gap-2">
-                                  <button (click)="openEditUserModal(user)" class="bg-white border border-brand-border text-brand-text-secondary hover:bg-slate-100 hover:text-brand-text-primary font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
-                                  <button (click)="deleteUser(user.id)" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                                  <button (click)="openEditUserModal(user)" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                                  <button (click)="deleteUser(user)" 
+                                          [disabled]="user.uid" 
+                                          title="{{ user.uid ? 'Active users must be deleted from the Firebase Console for security.' : 'Delete this user' }}" 
+                                          class="bg-red-100 text-red-600 hover:bg-red-600 hover:text-white font-bold py-1 px-3 rounded-md text-sm transition-colors disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed">
+                                    Delete
+                                  </button>
                                 </div>
                               </td>
                             </tr>
                           } @empty {
                             <tr>
-                              <td colspan="4" class="text-center text-brand-text-secondary py-16">
-                                <div class="text-5xl text-slate-400">
+                              <td colspan="4" class="text-center text-slate-500 py-16">
+                                <div class="text-5xl text-sky-500">
                                   <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M15 21a6 6 0 00-9-5.197M15 21a6 6 0 006-6v-1a6 6 0 00-9-5.197M12 10.25a4 4 0 110-5.292" /></svg>
                                 </div>
-                                <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">No Employees Found</h3>
+                                <h3 class="mt-4 text-xl font-semibold text-slate-800">No Employees Found</h3>
                                 <p class="mt-1">Click 'Add Employee' to create the first one.</p>
                               </td>
                             </tr>
@@ -139,15 +201,25 @@
                   </div>
                 </div>
               }
+
+              <!-- Applications Tab -->
+              @if (activeTab() === 'applications') {
+                <app-applications></app-applications>
+              }
+              
+              <!-- Job Openings Tab -->
+              @if (activeTab() === 'jobOpenings') {
+                <app-job-openings-management></app-job-openings-management>
+              }
               
               <!-- Rate Management Tab -->
               @if (activeTab() === 'rates') {
                 <app-rate-management></app-rate-management>
               }
 
-              <!-- Assign to Sub-Admin Tab -->
-              @if (activeTab() === 'assign') {
-                <app-assign-management></app-assign-management>
+              <!-- Manage Companies Tab -->
+              @if (activeTab() === 'manageCompanies') {
+                <app-manage-companies></app-manage-companies>
               }
 
               <!-- Publish Data Tab (was Bonuses) -->
@@ -164,6 +236,67 @@
               @if (activeTab() === 'history') {
                 <app-payroll-history></app-payroll-history>
               }
+
+              <!-- Payroll Summary Tab -->
+              @if (activeTab() === 'summary') {
+                <app-payroll-summary></app-payroll-summary>
+              }
+
+              <!-- Revenue Analysis Tab -->
+              @if (activeTab() === 'revenueAnalysis') {
+                <app-revenue-analysis></app-revenue-analysis>
+              }
+
+              <!-- Team Analysis Tab -->
+              @if (activeTab() === 'teamAnalysis') {
+                <app-team-analysis></app-team-analysis>
+              }
+
+              <!-- Prime Performance Tab -->
+              @if (activeTab() === 'primePerformance') {
+                <app-prime-performance></app-prime-performance>
+              }
+
+              <!-- Prime Performance Tracking Tab -->
+              @if (activeTab() === 'primePerformanceTracking') {
+                <app-prime-performance-tracking></app-prime-performance-tracking>
+              }
+
+              <!-- QC Form Templates Tab -->
+              @if (activeTab() === 'qcTemplates') {
+                <app-qc-management></app-qc-management>
+              }
+
+              <!-- QC Submissions Tab -->
+              @if (activeTab() === 'qcSubmissions') {
+                <app-qc-viewer></app-qc-viewer>
+              }
+
+               <!-- Paystub Viewer Tab -->
+              @if (activeTab() === 'paystubs') {
+                <app-paystub-viewer></app-paystub-viewer>
+              }
+
+               <!-- 1099 Forms Tab -->
+              @if (activeTab() === '1099-forms') {
+                <app-tax-forms></app-tax-forms>
+              }
+
+              <!-- Performance Tab -->
+              @if (activeTab() === 'performance') {
+                <app-performance-management></app-performance-management>
+              }
+
+              <!-- Chargebacks Upload Tab -->
+              @if (activeTab() === 'chargebacks') {
+                <app-chargeback-management></app-chargeback-management>
+              }
+
+              <!-- Chargeback History Tab -->
+              @if (activeTab() === 'chargebackHistory') {
+                <app-chargeback-history></app-chargeback-history>
+              }
+
               <!-- Company Settings Tab -->
               @if (activeTab() === 'settings') {
                 <app-company-settings></app-company-settings>
@@ -176,68 +309,164 @@
 
   <!-- Add/Edit User Modal -->
   @if (showUserModal()) {
-    <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
-      <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-brand-border max-h-[90vh] overflow-y-auto">
-        <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">{{ userToEdit() ? 'Edit User' : 'Create New User' }}</h2>
+    <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+      <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+        <h2 class="text-2xl font-bold mb-6 text-slate-800">
+          @if (!userToEdit()) {
+            Create New User
+          } @else if (!userToEdit()?.uid) {
+            Activate Account for {{ userToEdit()?.name }}
+          } @else {
+            Edit User
+          }
+        </h2>
         <form [formGroup]="userForm" (ngSubmit)="saveUser()">
           <div class="space-y-4">
-            <div>
-              <label for="name" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Full Name</label>
-              <input id="name" formControlName="name" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+            <h3 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2">Basic Information</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Full Name</label>
+                  <input id="name" formControlName="name" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+                <div>
+                  <label for="username" class="block text-sm font-medium text-slate-700 mb-1.5">Username</label>
+                  <input id="username" formControlName="username" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none disabled:bg-slate-200 disabled:cursor-not-allowed">
+                </div>
+                <div>
+                  <label for="techId" class="block text-sm font-medium text-slate-700 mb-1.5">Tech ID</label>
+                  <input id="techId" formControlName="techId" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+                <div>
+                  <label for="phone" class="block text-sm font-medium text-slate-700 mb-1.5">Phone Number</label>
+                  <input id="phone" formControlName="phone" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+                 <div>
+                  <label for="email" class="block text-sm font-medium text-slate-700 mb-1.5">Email Address</label>
+                  <input id="email" formControlName="email" type="email" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
             </div>
-            <div>
-              <label for="username" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Username</label>
-              <input id="username" formControlName="username" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
-            </div>
+
+            <h3 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 pt-4">Address & Tax Info</h3>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label for="techId" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Tech ID</label>
-                <input id="techId" formControlName="techId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+                <label for="tin" class="block text-sm font-medium text-slate-700 mb-1.5">Taxpayer ID (TIN/SSN)</label>
+                <input id="tin" formControlName="tin" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+              </div>
+               <div>
+                <label for="addressLine1" class="block text-sm font-medium text-slate-700 mb-1.5">Address Line 1</label>
+                <input id="addressLine1" formControlName="addressLine1" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
               </div>
               <div>
-                <label for="phone" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Phone Number</label>
-                <input id="phone" formControlName="phone" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
+                <label for="addressLine2" class="block text-sm font-medium text-slate-700 mb-1.5">Address Line 2 (Optional)</label>
+                <input id="addressLine2" formControlName="addressLine2" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                 <div>
+                  <label for="city" class="block text-sm font-medium text-slate-700 mb-1.5">City</label>
+                  <input id="city" formControlName="city" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+                 <div>
+                  <label for="state" class="block text-sm font-medium text-slate-700 mb-1.5">State</label>
+                  <input id="state" formControlName="state" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+                 <div>
+                  <label for="zipCode" class="block text-sm font-medium text-slate-700 mb-1.5">ZIP Code</label>
+                  <input id="zipCode" formControlName="zipCode" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
               </div>
             </div>
-            <div>
-              <label for="email" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Email Address</label>
-              <input id="email" formControlName="email" type="email" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
-            </div>
-             <div>
-              <label for="password" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Password</label>
-              <input id="password" formControlName="password" type="password" [placeholder]="userToEdit() ? 'New Password (optional)' : 'Password'" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
-            </div>
-            <div>
-              <label for="role" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Role</label>
-              <select id="role" formControlName="role" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
-                <option value="employee">Employee</option>
-                <option value="sub-admin">Sub-Admin</option>
-              </select>
-            </div>
-            <div>
-              <label for="rateCategoryId" class="block text-sm font-medium text-brand-text-secondary mb-1.5">Rate Category</label>
-              <select id="rateCategoryId" formControlName="rateCategoryId" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none transition-colors">
-                <option [ngValue]="null" [disabled]="rateCategories().length === 0">
-                  {{ rateCategories().length > 0 ? 'Select Rate Category (Optional)' : 'No Rate Categories exist - Assign later' }}
-                </option>
-                @for (cat of rateCategories(); track cat.id) {
-                  <option [value]="cat.id">{{ cat.name }}</option>
-                }
-              </select>
+
+            <h3 class="text-lg font-semibold text-slate-700 border-b border-slate-200 pb-2 pt-4">System & Payroll</h3>
+             
+            @if (userToEdit(); as user) {
+              @if (user.uid) {
+                <div>
+                  <label class="block text-sm font-medium text-slate-700 mb-1.5">Password Management</label>
+                  <button type="button" (click)="sendPasswordReset(user.email)" [disabled]="hasInvalidEmail(user) || isSendingReset()" class="w-full bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold py-3 px-4 rounded-lg flex items-center justify-center gap-2 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed">
+                    @if (isSendingReset()) {
+                      <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                      <span>Sending...</span>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a2 2 0 0 0-2 2v1.161l8.441 4.221a1.25 1.25 0 0 0 1.118 0L19 7.162V6a2 2 0 0 0-2-2H3Z" /><path d="M19 8.839l-7.77 3.885a2.75 2.75 0 0 1-2.46 0L1 8.839V14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.839Z" /></svg>
+                      <span>Send Password Reset Email</span>
+                    }
+                  </button>
+                  @if (hasInvalidEmail(user)) {
+                    <p class="text-xs text-red-600 mt-1">Cannot send reset email to an invalid or placeholder email address.</p>
+                  }
+                </div>
+              } @else {
+                <div>
+                  <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">Set Initial Password</label>
+                  <input id="password" formControlName="password" type="password" placeholder="Password (min. 6 characters)" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                </div>
+              }
+            } @else {
+              <div>
+                <label for="password" class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                <input id="password" formControlName="password" type="password" placeholder="Password (min. 6 characters)" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+              </div>
+            }
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label for="role" class="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
+                <select 
+                  id="role" 
+                  formControlName="role" 
+                  class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none disabled:bg-slate-200 disabled:cursor-not-allowed"
+                  title="{{ userToEdit()?.id === currentUser()?.id ? 'You cannot change your own role.' : 'Select a role' }}">
+                  <option value="employee">Employee</option>
+                  <option value="sub-admin">Sub-Admin</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label for="rateCategoryId" class="block text-sm font-medium text-slate-700 mb-1.5">Rate Category</label>
+                <select id="rateCategoryId" formControlName="rateCategoryId" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                  <option [ngValue]="null" [disabled]="rateCategories().length === 0">
+                    {{ rateCategories().length > 0 ? 'Select Rate Category (Optional)' : 'No Rate Categories exist - Assign later' }}
+                  </option>
+                  @for (cat of rateCategories(); track cat.id) {
+                    <option [ngValue]="cat.id">{{ cat.name }}</option>
+                  }
+                </select>
+              </div>
             </div>
           </div>
           <div class="flex justify-end gap-4 mt-8">
-            <button type="button" (click)="closeUserModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg transition-colors">Cancel</button>
-            <button type="submit" [disabled]="userForm.invalid || isSavingUser()" class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-6 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors w-32 text-center">
-              @if(isSavingUser()) {
-                <svg class="animate-spin mx-auto h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <button type="button" (click)="closeUserModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+            <button type="submit" [disabled]="userForm.invalid || isSavingUser()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center">
+              @if (isSavingUser()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span>Saving...</span>
               } @else {
-                <span>Save User</span>
+                <span>
+                  @if (!userToEdit()) {
+                    Create User
+                  } @else if (!userToEdit()?.uid) {
+                    Activate User
+                  } @else {
+                    Save Changes
+                  }
+                </span>
               }
             </button>
           </div>
         </form>
       </div>
     </div>
+  }
+  
+  <!-- Delete User Confirmation -->
+  @if (showDeleteUserConfirm()) {
+    <app-confirmation-modal 
+      title="Confirm User Deletion"
+      [message]="'Are you sure you want to permanently delete ' + userToDelete()?.name + '? This will also remove all their associated jobs and cannot be undone.'"
+      confirmText="Delete User"
+      confirmStyle="danger"
+      (confirmed)="handleUserDelete($event)">
+    </app-confirmation-modal>
   }
 </div>

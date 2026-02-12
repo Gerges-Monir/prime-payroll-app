@@ -1,0 +1,174 @@
+<div class="animate-fade-in space-y-8">
+  <div class="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Company Settings</h2>
+      <p class="text-slate-500">Update your company's information and branding.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" class="space-y-8">
+    <!-- Company Info -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+      <h3 class="text-lg font-semibold mb-4 text-slate-800">Company Information</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="companyName" class="block text-sm font-medium text-slate-500 mb-1">Company Name</label>
+          <input id="companyName" formControlName="companyName" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyPhone" class="block text-sm font-medium text-slate-500 mb-1">Phone Number</label>
+          <input id="companyPhone" formControlName="companyPhone" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyAddress1" class="block text-sm font-medium text-slate-500 mb-1">Address Line 1</label>
+          <input id="companyAddress1" formControlName="companyAddress1" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyEmail" class="block text-sm font-medium text-slate-500 mb-1">Email Address</label>
+          <input id="companyEmail" type="email" formControlName="companyEmail" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="companyAddress2" class="block text-sm font-medium text-slate-500 mb-1">Address Line 2</label>
+          <input id="companyAddress2" formControlName="companyAddress2" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Branding -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+        <h3 class="text-lg font-semibold mb-4 text-slate-800">Branding</h3>
+        <div class="flex items-center gap-6">
+            <img [src]="logoUrl()" alt="Company Logo" class="h-16 bg-slate-100 p-2 rounded-lg border border-slate-200">
+            <div>
+              <div class="flex items-center gap-2">
+                <label for="logo-upload" class="bg-slate-100/50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-4 rounded-lg cursor-pointer text-sm">
+                    Upload New Logo
+                </label>
+                 <button (click)="showLogoFormatHelp.set(true)" type="button" class="text-slate-400 hover:text-blue-600" title="View format recommendations">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+              </div>
+                <input id="logo-upload" type="file" (change)="onLogoSelected($event)" accept="image/*" class="hidden">
+                <p class="text-xs text-slate-500 mt-2">Recommended size: 300x75px. Max file size: 2MB.</p>
+                @if (uploadMessage()) {
+                    <p class="text-sm mt-2" [class.text-green-600]="!uploadError()" [class.text-red-600]="uploadError()">{{ uploadMessage() }}</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Media Links -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+      <h3 class="text-lg font-semibold mb-4 text-slate-800">Social Media Profiles</h3>
+      <p class="text-sm text-slate-500 mb-4">
+        Enter the full URLs for your company's social media profiles. These will be linked in the website footer.
+      </p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="facebookUrl" class="block text-sm font-medium text-slate-500 mb-1">Facebook URL</label>
+          <input id="facebookUrl" formControlName="facebookUrl" placeholder="https://facebook.com/your-company" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+        <div>
+          <label for="linkedinUrl" class="block text-sm font-medium text-slate-500 mb-1">LinkedIn URL</label>
+          <input id="linkedinUrl" formControlName="linkedinUrl" placeholder="https://linkedin.com/company/your-company" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Partners -->
+    <div class="bg-white p-6 rounded-lg border border-slate-200">
+      <div class="flex justify-between items-center mb-4">
+        <div>
+            <h3 class="text-lg font-semibold text-slate-800">Manage Partners</h3>
+            <p class="text-sm text-slate-500">Add or remove partners to be displayed on the landing page.</p>
+        </div>
+        <button type="button" (click)="openAddPartnerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-sm">Add Partner</button>
+      </div>
+      <div class="space-y-2">
+        @for (partner of partners(); track partner.name) {
+          <div class="flex justify-between items-center bg-slate-100/70 p-3 rounded-md">
+            <div class="flex items-center gap-4">
+              <img [src]="partner.logoUrl" [alt]="partner.name + ' Logo'" class="h-8 w-auto bg-white p-1 rounded object-contain border border-slate-200" (error)="$event.target.style.display='none'">
+              <span class="font-medium text-slate-700">{{ partner.name }}</span>
+            </div>
+             <div class="flex items-center gap-2">
+                <button type="button" (click)="openEditPartnerModal(partner)" class="bg-slate-200 text-slate-700 hover:bg-slate-300 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                <button type="button" (click)="deletePartner(partner)" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+            </div>
+          </div>
+        } @empty {
+          <p class="text-center text-slate-500 py-4">No partners added yet.</p>
+        }
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="flex justify-end">
+      <button type="submit" [disabled]="settingsForm.invalid" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+        Save All Settings
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Add/Edit Partner Modal -->
+@if (showPartnerModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">{{ partnerToEdit() ? 'Edit' : 'Add' }} Partner</h2>
+      <form [formGroup]="partnerForm" (ngSubmit)="savePartner()" class="space-y-4">
+        <div>
+          <label for="partner-name" class="block text-sm font-medium text-slate-700 mb-1">Partner Name</label>
+          <input id="partner-name" formControlName="name" placeholder="e.g., Google Fiber" class="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition">
+        </div>
+        <div>
+          <label for="partner-logoUrl" class="block text-sm font-medium text-slate-700 mb-1">Logo URL</label>
+          <input id="partner-logoUrl" formControlName="logoUrl" placeholder="Paste image URL or upload file below" class="w-full p-3 bg-slate-100 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition">
+        </div>
+        <div class="flex items-center justify-between">
+            <div>
+                <label for="partner-logo-upload" class="bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 font-bold py-2 px-4 rounded-lg cursor-pointer text-sm">
+                    Upload Logo
+                </label>
+                <input id="partner-logo-upload" type="file" (change)="onPartnerLogoSelected($event)" accept="image/*" class="hidden">
+            </div>
+            @if (partnerForm.get('logoUrl')?.value) {
+                <div class="flex flex-col items-center">
+                    <span class="text-xs text-slate-500 mb-1">Preview</span>
+                    <img [src]="partnerForm.get('logoUrl')?.value" alt="Logo preview" class="h-12 bg-slate-100 p-1 rounded-md border border-slate-200 object-contain">
+                </div>
+            }
+        </div>
+        <div class="flex justify-end gap-4 pt-4 mt-4 border-t border-slate-200">
+          <button type="button" (click)="closePartnerModal()" class="px-6 py-2 bg-slate-200 text-slate-800 font-semibold rounded-lg hover:bg-slate-300 transition duration-300">Cancel</button>
+          <button type="submit" [disabled]="partnerForm.invalid || isSavingPartner()" class="px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition duration-300 transform hover:-translate-y-0.5 disabled:bg-blue-300 disabled:cursor-not-allowed">
+            {{ isSavingPartner() ? 'Saving...' : 'Save Partner' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Logo Format Help Modal -->
+@if (showLogoFormatHelp()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="showLogoFormatHelp.set(false)">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-200" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-start">
+        <h2 class="text-xl font-bold mb-4 text-slate-800">Logo Recommendations</h2>
+        <button (click)="showLogoFormatHelp.set(false)" class="text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <div class="text-sm text-slate-600 space-y-3">
+        <p>For the best results, please follow these guidelines when uploading a logo:</p>
+        <ul class="list-disc list-inside pl-2 space-y-2 bg-slate-50 p-4 rounded-lg border">
+          <li><strong>Format:</strong> SVG, PNG, or JPG are supported. SVGs are preferred as they scale without losing quality.</li>
+          <li><strong>Dimensions:</strong> A wide aspect ratio is recommended, around <strong>300px wide by 75px tall</strong>.</li>
+          <li><strong>Background:</strong> Use a transparent background for PNGs and SVGs to ensure it looks good on all parts of the site.</li>
+           <li><strong>File Size:</strong> Keep the file size under <strong>2MB</strong> to ensure fast loading times.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+}

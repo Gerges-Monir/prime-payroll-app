@@ -1,0 +1,133 @@
+<div class="animate-fade-in space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-slate-800">Payroll Summary</h2>
+    <p class="text-slate-500">View historical weekly and year-to-date (YTD) payroll summaries.</p>
+  </div>
+
+  <!-- View Toggles -->
+  <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-lg border border-slate-200 w-fit shadow-sm">
+    <button (click)="viewMode.set('weekly')" [class]="viewMode() === 'weekly' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+      Weekly Summary
+    </button>
+    <button (click)="viewMode.set('ytd')" [class]="viewMode() === 'ytd' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+      YTD Summary
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    @if (viewMode() === 'weekly') {
+      <div>
+        <label for="payroll-select" class="block text-sm font-medium text-slate-500 mb-1">Select Payroll Period</label>
+        <select id="payroll-select" (change)="selectPayroll($event)" [value]="selectedPayrollId() || ''" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          @for (payroll of payrolls(); track payroll.id) {
+            <option [value]="payroll.id">{{ payroll.startDate | date:'mediumDate' }} - {{ payroll.endDate | date:'mediumDate' }}</option>
+          }
+        </select>
+      </div>
+    }
+    <div [class.md:col-start-2]="viewMode() === 'weekly'">
+      <label for="search-filter" class="block text-sm font-medium text-slate-500 mb-1">Search by Name</label>
+      <input id="search-filter" type="text" (input)="filterTerm.set($event.target.value)" placeholder="Filter by employee or company name..." class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+    </div>
+  </div>
+
+  <!-- Weekly Summary View -->
+  @if (viewMode() === 'weekly') {
+    <div class="border border-slate-200 rounded-lg">
+      <div class="max-h-[60vh] overflow-y-auto">
+        <table class="w-full text-left">
+          <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+            <tr>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500">Entity</th>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500">Type</th>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-right">Total Payout</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            @for (entity of filteredWeeklySummary(); track entity.id) {
+              <tr class="hover:bg-slate-50/70">
+                <td class="p-4 font-semibold text-slate-800">{{ entity.name }}</td>
+                <td class="p-4">
+                   <span class="px-2 py-1 text-xs font-semibold rounded-full" [class.bg-blue-100]="entity.type === 'Employee'" [class.text-blue-800]="entity.type === 'Employee'" [class.bg-purple-100]="entity.type === 'Company'" [class.text-purple-800]="entity.type === 'Company'">
+                    {{ entity.type }}
+                   </span>
+                </td>
+                <td class="p-4 font-mono text-right text-green-600 font-bold">{{ entity.payout | currency }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="3" class="text-center text-slate-500 py-16">No data for the selected period.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- YTD Summary View -->
+  @if (viewMode() === 'ytd') {
+    <div class="border border-slate-200 rounded-lg">
+      <div class="max-h-[60vh] overflow-y-auto">
+        <table class="w-full text-left">
+          <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+            <tr>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500">Entity</th>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500">Type</th>
+              <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-right">YTD Payout</th>
+            </tr>
+          </thead>
+           <tbody class="divide-y divide-slate-200">
+            @for (entity of filteredYtdSummary(); track entity.id) {
+              <tr class="hover:bg-slate-50/70 cursor-pointer" (click)="showYtdDrilldown.set(entity)">
+                <td class="p-4 font-semibold text-slate-800">{{ entity.name }}</td>
+                <td class="p-4">
+                   <span class="px-2 py-1 text-xs font-semibold rounded-full" [class.bg-blue-100]="entity.type === 'Employee'" [class.text-blue-800]="entity.type === 'Employee'" [class.bg-purple-100]="entity.type === 'Company'" [class.text-purple-800]="entity.type === 'Company'">
+                    {{ entity.type }}
+                   </span>
+                </td>
+                <td class="p-4 font-mono text-right text-green-600 font-bold">{{ entity.ytdPayout | currency }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="3" class="text-center text-slate-500 py-16">No historical data available.</td></tr>
+            }
+           </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+</div>
+
+<!-- YTD Drilldown Modal -->
+@if (showYtdDrilldown(); as entity) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="showYtdDrilldown.set(null)">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-200 max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold text-slate-800">Weekly Breakdown for {{ entity.name }}</h2>
+          <button (click)="showYtdDrilldown.set(null)" class="text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <div class="flex-grow overflow-y-auto border-t border-b border-slate-200 py-4">
+        <table class="w-full text-left">
+          <thead class="sticky top-0 bg-slate-100 z-10">
+            <tr>
+              <th class="p-3 text-sm font-semibold uppercase text-slate-500">Pay Period</th>
+              <th class="p-3 text-sm font-semibold uppercase text-slate-500 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            @for (item of entity.weeklyBreakdown; track item.week) {
+              <tr class="hover:bg-blue-50/70">
+                <td class="p-3 text-slate-800">{{ item.week }}</td>
+                <td class="p-3 font-mono text-right text-slate-800">{{ item.amount | currency }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+       <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-200">
+          <span class="text-lg font-bold text-slate-800">YTD Total</span>
+          <span class="text-xl font-bold text-green-600">{{ entity.ytdPayout | currency }}</span>
+       </div>
+    </div>
+  </div>
+}

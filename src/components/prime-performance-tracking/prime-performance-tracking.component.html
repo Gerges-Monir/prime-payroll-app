@@ -1,0 +1,255 @@
+<div class="animate-fade-in space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-slate-800">Performance Tracking Dashboard</h2>
+    <p class="text-slate-500">Analyze performance trends for the company or individual technicians over time.</p>
+  </div>
+
+  @if (isInitializing()) {
+    <div class="text-center py-20 text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200">
+        <svg class="animate-spin h-8 w-8 mx-auto text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <p class="mt-4">Loading and processing all historical data...</p>
+    </div>
+  } @else if (availableDatasets().length === 0) {
+     <div class="text-center py-20 text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200">
+        <h3 class="text-xl font-semibold text-slate-800">No Performance Data Found</h3>
+        <p class="mt-1">Please upload one or more datasets on the 'Performance Datasets' page to begin tracking.</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-12 gap-6">
+      <!-- Filters -->
+      <div class="col-span-12 lg:col-span-3 space-y-6">
+        <div>
+          <label for="tech-select" class="block text-sm font-medium text-slate-700 mb-1">Analyze</label>
+          <select id="tech-select" [(ngModel)]="selectedTechnicianId" class="w-full p-3 bg-white border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+            <option value="company_average">Company Average</option>
+            @for (tech of allTechnicians(); track tech.id) {
+              <option [value]="tech.id">{{ tech.name }}</option>
+            }
+          </select>
+        </div>
+        
+        <div>
+          <label for="week-filter-btn" class="block text-sm font-medium text-slate-700 mb-1">Include Weeks</label>
+          <div class="relative">
+            <button id="week-filter-btn" (click)="showWeekSelector.set(!showWeekSelector())" class="w-full p-3 bg-white border border-slate-300 rounded-lg shadow-sm text-left flex justify-between items-center">
+              <span>{{ selectedDatasetIds().size }} week(s) selected</span>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 text-slate-400"><path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" /></svg>
+            </button>
+            @if(showWeekSelector()) {
+              <div class="absolute top-full left-0 mt-1 w-full bg-white border border-slate-300 rounded-lg shadow-lg z-10 p-2 animate-fade-in-fast">
+                 <input type="text" (input)="datasetFilterTerm.set($event.target.value)" placeholder="Filter weeks..." class="w-full p-2 text-sm bg-white border border-slate-300 rounded-lg mb-2">
+                 <div class="max-h-60 overflow-y-auto space-y-1">
+                  @for (dataset of filteredAvailableDatasets(); track dataset.id) {
+                    <label class="flex items-center gap-2 p-2 rounded-md hover:bg-slate-100 cursor-pointer">
+                      <input type="checkbox" [checked]="selectedDatasetIds().has(dataset.id)" (change)="toggleDatasetSelection(dataset.id, $event)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                      <span class="text-sm">{{ dataset.uploadDate | date:'mediumDate' }}</span>
+                    </label>
+                  }
+                 </div>
+              </div>
+            }
+          </div>
+          <div class="mt-2 flex flex-wrap gap-1">
+            @for(week of selectedWeeks(); track week.id) {
+              <span class="flex items-center gap-1 bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">
+                {{ week.uploadDate | date:'shortDate' }}
+                <button (click)="deselectDataset(week.id)" class="text-blue-600 hover:text-blue-800">&times;</button>
+              </span>
+            }
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-span-12 lg:col-span-9 space-y-8">
+        <!-- KPI Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          @for (kpi of kpiSummary(); track kpi.label) {
+            <div class="kpi-card">
+              <p class="kpi-label">{{ kpi.label }}</p>
+              <p class="kpi-value">{{ kpi.value }}</p>
+              @if (kpi.isPositiveChange !== null) {
+                <p class="kpi-change" [class.positive]="kpi.isPositiveChange" [class.negative]="!kpi.isPositiveChange">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4">
+                    @if (kpi.isPositiveChange) {
+                      <path fill-rule="evenodd" d="M10 17a.75.75 0 0 1-.75-.75V5.612L5.29 9.77a.75.75 0 0 1-1.08-1.04l5.25-5.5a.75.75 0 0 1 1.08 0l5.25 5.5a.75.75 0 1 1-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0 1 10 17Z" clip-rule="evenodd" />
+                    } @else {
+                      <path fill-rule="evenodd" d="M10 3a.75.75 0 0 1 .75.75v10.638l3.96-4.158a.75.75 0 1 1 1.08 1.04l-5.25 5.5a.75.75 0 0 1-1.08 0l-5.25-5.5a.75.75 0 1 1 1.08-1.04l3.96 4.158V3.75A.75.75 0 0 1 10 3Z" clip-rule="evenodd" />
+                    }
+                  </svg>
+                  <span>{{ kpi.isPositiveChange ? '+' : '' }}{{ kpi.change }}{{ kpi.isPercent ? '%' : ' pts' }}</span>
+                </p>
+              }
+            </div>
+          }
+        </div>
+        
+        <!-- Chart -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <h3 class="text-lg font-semibold text-slate-800 mb-1">Performance Trend</h3>
+          <p class="text-sm text-slate-500 mb-4">A line graph showing performance changes over the selected weeks.</p>
+          <div class="mb-4 p-3 border border-slate-200 rounded-lg bg-slate-50">
+            <h4 class="text-sm font-medium text-slate-600 mb-2">Select Metrics to Display on Chart:</h4>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+              @for(metric of allMetrics; track metric.key) {
+                <label class="flex items-center gap-2 p-1.5 rounded-md hover:bg-slate-200 cursor-pointer text-sm">
+                  <input type="checkbox" [checked]="selectedMetrics().has(metric.key)" (change)="toggleMetricSelection(metric.key)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                  {{ metric.label }}
+                </label>
+              }
+            </div>
+          </div>
+          <div #chartContainer class="w-full h-[400px]"></div>
+        </div>
+
+        <!-- Weekly Deep Dive -->
+        <div #weeklyDeepDiveContainer class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-4 mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-slate-800">Weekly Deep Dive</h3>
+              <p class="text-sm text-slate-500">A detailed breakdown for a single week.</p>
+            </div>
+            @if (snapshotTier(); as tier) {
+              <div class="text-right flex-shrink-0 bg-slate-100 p-2 rounded-lg border">
+                <p class="text-sm font-medium text-slate-500">{{ deepDiveData()?.techData.Name }} Standing</p>
+                <div class="flex items-baseline justify-end gap-4">
+                  <div>
+                    <p class="font-bold text-xl text-blue-600">{{ tier }}</p>
+                    <p class="text-xs text-slate-500">Tier</p>
+                  </div>
+                  @if (deepDiveData()?.techData.RANK) {
+                    <div>
+                      <p class="font-bold text-xl text-blue-600">#{{ deepDiveData()?.techData.RANK }}</p>
+                      <p class="text-xs text-slate-500">Rank</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+          <div class="mb-4">
+            <label for="snapshot-week-select" class="block text-sm font-medium text-slate-700 mb-1">Select a week to visualize:</label>
+            <select id="snapshot-week-select" [(ngModel)]="deepDiveWeekId" class="w-full md:w-1/2 p-2 bg-white border border-slate-300 rounded-lg">
+              @for(week of selectedWeeks(); track week.id) {
+                <option [value]="week.id">{{ week.uploadDate | date:'mediumDate' }}</option>
+              }
+            </select>
+          </div>
+          @if(snapshotBarChartData().length > 0) {
+            <div class="bar-chart-container">
+                @for(bar of snapshotBarChartData(); track bar.label) {
+                    <div class="bar-item">
+                        <div class="bar-wrapper">
+                            <div class="bar" [style.height.%]="bar.height">
+                                <span class="bar-label">{{ bar.displayValue }}</span>
+                            </div>
+                        </div>
+                        <p class="metric-name">{{ bar.label }}</p>
+                    </div>
+                }
+            </div>
+
+            <!-- New Deep Dive Sections -->
+            <div class="mt-8 space-y-8">
+              <!-- Key Improvement Opportunities -->
+              @if (deepDiveData()?.perfData.top3Priorities.length > 0) {
+                <div>
+                  <h4 class="font-semibold text-slate-800 mb-2">
+                     {{ selectedTechnicianId() === 'company_average' ? 'Top Company-Wide Opportunities' : 'Key Improvement Opportunities' }}
+                  </h4>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @for(opp of deepDiveData()?.perfData.top3Priorities; track opp.tierLabel) {
+                      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-center">
+                        <p class="font-bold text-amber-900 text-lg">+{{opp.points_available}} pts</p>
+                        <p class="text-sm font-semibold text-amber-800">{{opp.tierLabel}}</p>
+                        <p class="text-xs text-amber-700 mt-2">
+                          Current: {{ opp.metric.includes('%') ? (opp.current*100).toFixed(1)+'%' : opp.current.toFixed(1) }} 
+                          <span class="font-semibold">→</span> 
+                          Target: {{ opp.lower_better ? '≤' : '≥' }}{{ opp.metric.includes('%') ? (opp.target*100).toFixed(1)+'%' : opp.target.toFixed(1) }}
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+              <!-- Top & Bottom Performers -->
+              @if(weeklyPerformers(); as performers) {
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 class="font-semibold text-slate-800 mb-2">Top 5 Performers</h4>
+                    <ul class="space-y-2">
+                      @for(tech of performers.top; track tech.techData['Tech #']) {
+                        <li class="flex items-center justify-between bg-green-50 p-2 rounded-lg border border-green-200">
+                          <span class="font-medium text-green-800">{{tech.techData.Name}}</span>
+                          <span class="font-bold text-green-900">{{tech.perfData.total_points}} pts</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold text-slate-800 mb-2">Bottom 5 Performers</h4>
+                     <ul class="space-y-2">
+                      @for(tech of performers.bottom; track tech.techData['Tech #']) {
+                        <li class="flex items-center justify-between bg-red-50 p-2 rounded-lg border border-red-200">
+                          <span class="font-medium text-red-800">{{tech.techData.Name}}</span>
+                          <span class="font-bold text-red-900">{{tech.perfData.total_points}} pts</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                </div>
+              }
+
+              <!-- Technician Breakdown -->
+              <div>
+                <div class="flex justify-between items-center mb-2">
+                  <h4 class="font-semibold text-slate-800">Technician Breakdown</h4>
+                  <button (click)="downloadTechnicianBreakdownAsExcel()" class="text-sm font-semibold text-blue-600 hover:underline">Download Details (XLSX)</button>
+                </div>
+                <div class="max-h-96 overflow-y-auto border border-slate-200 rounded-lg">
+                  <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="sticky top-0 bg-slate-100 z-10">
+                      <tr>
+                        <th class="p-2 font-semibold uppercase text-slate-500 sticky left-0 bg-slate-100">Name</th>
+                        @for(metric of allMetrics; track metric.key) {
+                            <th class="p-2 font-semibold uppercase text-slate-500 text-right">{{ metric.label }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                      @for(tech of technicianBreakdown(); track tech.techId) {
+                        <tr class="hover:bg-slate-50 group">
+                          <td class="p-2 font-medium text-slate-800 sticky left-0 bg-white group-hover:bg-slate-50">{{tech.name}}</td>
+                          @for(metric of allMetrics; track metric.key) {
+                            <td class="p-2 font-mono text-right text-slate-600">
+                               @if (tech[metric.key] !== undefined && tech[metric.key] !== null) {
+                                @if (metric.key.includes('%')) {
+                                  {{ (tech[metric.key] * 100).toFixed(1) }}%
+                                } @else if (metric.key.includes('Points')) {
+                                  {{ tech[metric.key].toFixed(0) }}
+                                } @else {
+                                  {{ tech[metric.key].toFixed(1) }}
+                                }
+                              } @else {
+                                N/A
+                              }
+                            </td>
+                          }
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+
+          } @else {
+            <p class="text-slate-500 text-center py-8">Select a week to see the detailed breakdown.</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

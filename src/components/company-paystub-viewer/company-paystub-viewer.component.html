@@ -1,0 +1,108 @@
+<div class="space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-slate-800">Company Report</h2>
+    <p class="text-slate-500">View aggregated payroll reports for you and your team.</p>
+  </div>
+
+  <!-- Batch Selector -->
+  <div class="mb-6">
+    <label for="batch-select" class="block text-sm font-medium text-slate-500 mb-1">Select Finalized Period</label>
+    <select id="batch-select" (change)="selectBatch($event)" [value]="selectedBatch()?.id || ''" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full md:w-1/2 lg:w-1/3 border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+      @if (finalizedBatches().length === 0) {
+        <option value="" disabled>No finalized batches available</option>
+      }
+      @for (batch of finalizedBatches(); track batch.id) {
+        <option [value]="batch.id">
+          {{ batch.startDate | date:'mediumDate' }} - {{ batch.endDate | date:'mediumDate' }}
+        </option>
+      }
+    </select>
+  </div>
+
+  @if (reportData(); as report) {
+    @let batch = selectedBatch()!;
+    <!-- Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+       <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-md"><p class="text-sm font-medium text-slate-500">Total Payout</p><p class="text-2xl font-bold text-green-600 mt-1">{{ report.totalPayout | currency }}</p></div>
+       <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-md"><p class="text-sm font-medium text-slate-500">Total Revenue</p><p class="text-2xl font-bold text-slate-800 mt-1">{{ report.totalRevenue | currency }}</p></div>
+       <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-md"><p class="text-sm font-medium text-slate-500">My Adjustments &amp; Profit</p><p class="text-2xl font-bold text-blue-600 mt-1">{{ report.subAdminAdjustments | currency }}</p></div>
+       <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-md"><p class="text-sm font-medium text-slate-500">Total Jobs</p><p class="text-2xl font-bold text-slate-800 mt-1">{{ report.totalJobs }}</p></div>
+    </div>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Team Breakdown -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4 text-slate-800">Team Payout Summary for {{ batch.startDate | date:'mediumDate' }}</h3>
+                <div class="border border-slate-200 rounded-lg max-h-96 overflow-y-auto">
+                    <table class="w-full text-left">
+                        <thead class="sticky top-0 bg-slate-100 z-10">
+                            <tr>
+                                <th class="p-3 text-sm font-semibold uppercase text-slate-500">Team Member</th>
+                                <th class="p-3 text-sm font-semibold uppercase text-slate-500 text-right">Jobs</th>
+                                <th class="p-3 text-sm font-semibold uppercase text-slate-500 text-right">Revenue</th>
+                                <th class="p-3 text-sm font-semibold uppercase text-slate-500 text-right">Payout</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            <!-- Sub-Admin -->
+                             @if (report.subAdminReport) {
+                                <tr class="bg-blue-50">
+                                    <td class="p-3 font-semibold text-slate-800">{{ report.subAdminReport.name }} (You)</td>
+                                    <td class="p-3 font-mono text-right text-slate-800">{{ report.subAdminReport.totalJobs }}</td>
+                                    <td class="p-3 font-mono text-right text-slate-800">{{ report.subAdminReport.totalRevenue | currency }}</td>
+                                    <td class="p-3 font-mono text-right text-slate-800 font-bold">{{ report.subAdminReport.totalEarnings | currency }}</td>
+                                </tr>
+                             }
+                             <!-- Team Members -->
+                             @for (member of report.teamReports; track member.id) {
+                                <tr>
+                                    <td class="p-3 text-slate-800">{{ member.name }}</td>
+                                    <td class="p-3 font-mono text-right text-slate-500">{{ member.totalJobs }}</td>
+                                    <td class="p-3 font-mono text-right text-slate-500">{{ member.totalRevenue | currency }}</td>
+                                    <td class="p-3 font-mono text-right text-slate-800 font-semibold">{{ member.totalEarnings | currency }}</td>
+                                </tr>
+                             }
+                        </tbody>
+                        <tfoot class="sticky bottom-0 bg-slate-100/70">
+                             <tr>
+                                <td class="p-3 font-bold text-slate-800" colspan="3">Total Company Payout</td>
+                                <td class="p-3 font-mono text-right text-green-600 font-bold">{{ report.totalPayout | currency }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- YTD Summary -->
+        <div class="lg:col-span-1">
+             <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm space-y-4">
+                <h3 class="text-lg font-semibold text-slate-800">Year-to-Date Summary</h3>
+                <div class="flex justify-between items-baseline">
+                    <span class="text-slate-500">Total Revenue:</span>
+                    <span class="font-semibold text-slate-800">{{ ytdData().ytdRevenue | currency }}</span>
+                </div>
+                <div class="flex justify-between items-baseline">
+                    <span class="text-slate-500">Total Payout:</span>
+                    <span class="font-semibold text-slate-800">{{ ytdData().ytdPayout | currency }}</span>
+                </div>
+                 <div class="flex justify-between items-baseline pt-2 border-t border-slate-200">
+                    <span class="font-bold text-slate-800">Total Company Profit:</span>
+                    <span class="font-bold text-blue-600">{{ ytdData().ytdCompanyProfit | currency }}</span>
+                </div>
+             </div>
+        </div>
+    </div>
+
+  } @else {
+    <div class="h-[50vh] flex items-center justify-center text-center text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200 p-8">
+      <div>
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+        <h2 class="text-2xl font-bold text-slate-800 mt-4">No Reports Available</h2>
+        <p class="mt-2 text-lg">
+          Finalize a payroll batch to view a company report here.
+        </p>
+      </div>
+    </div>
+  }
+</div>

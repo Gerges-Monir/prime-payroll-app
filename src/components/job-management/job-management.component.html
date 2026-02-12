@@ -1,118 +1,345 @@
 <div class="animate-fade-in">
   <div>
-    <h2 class="text-xl font-semibold text-brand-text-primary">Manage Jobs</h2>
-    <p class="text-brand-text-secondary">View, edit, or delete individual job records.</p>
+    <h2 class="text-xl font-semibold text-slate-800">Manage Jobs</h2>
+    <p class="text-slate-500">View, edit, or delete individual job records.</p>
   </div>
   
   <!-- Filters -->
-  <div class="my-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-    <div class="lg:col-span-2">
-      <label class="block text-sm font-medium text-brand-text-secondary mb-1">Search</label>
+  <div class="my-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 items-end">
+    <div>
+      <label class="block text-sm font-medium text-slate-500 mb-1">Search</label>
       <input 
         type="text" 
-        placeholder="Search by tech name, ID, or task..."
+        placeholder="Search by tech name, ID, or work order..."
         (input)="onFilter($event)"
-        class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
-    </div>
-     <div>
-      <label class="block text-sm font-medium text-brand-text-secondary mb-1">Start Date</label>
-      <input type="date" [value]="startDate() || ''" (input)="onStartDate($event)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+        class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
     </div>
     <div>
-      <label class="block text-sm font-medium text-brand-text-secondary mb-1">End Date</label>
-      <input type="date" [value]="endDate() || ''" (input)="onEndDate($event)" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+      <label class="block text-sm font-medium text-slate-500 mb-1">Filter by Employee</label>
+      <select 
+        (change)="onTechFilterChange($event)"
+        class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        <option value="all">All Employees</option>
+        @for(employee of employees(); track employee.id) {
+          <option [value]="employee.techId">{{ employee.name }}</option>
+        }
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-500 mb-1">Filter by Task Code</label>
+      <input 
+        type="text"
+        placeholder="e.g., I&R"
+        (input)="onTaskCodeFilter($event)"
+        class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+    </div>
+     <div>
+      <label class="block text-sm font-medium text-slate-500 mb-1">Start Date</label>
+      <input type="text" placeholder="MM/DD/YY" [value]="startDateInput()" (input)="onStartDate($event)" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-500 mb-1">End Date</label>
+      <input type="text" placeholder="MM/DD/YY" [value]="endDateInput()" (input)="onEndDate($event)" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
     </div>
   </div>
   <div class="flex items-center gap-2 mb-6">
-      <span class="text-sm font-medium text-brand-text-secondary">Quick Filters:</span>
-      <button (click)="setQuickFilter('today')" class="text-sm bg-slate-200 hover:bg-slate-300 text-brand-text-primary font-semibold px-3 py-1 rounded-full">Today</button>
-      <button (click)="setQuickFilter('week')" class="text-sm bg-slate-200 hover:bg-slate-300 text-brand-text-primary font-semibold px-3 py-1 rounded-full">This Week</button>
-      <button (click)="setQuickFilter('month')" class="text-sm bg-slate-200 hover:bg-slate-300 text-brand-text-primary font-semibold px-3 py-1 rounded-full">This Month</button>
+      <span class="text-sm font-medium text-slate-500">Quick Filters:</span>
+      <button (click)="setQuickFilter('today')" class="text-sm bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 font-semibold px-3 py-1 rounded-full">Today</button>
+      <button (click)="setQuickFilter('week')" class="text-sm bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 font-semibold px-3 py-1 rounded-full">This Week</button>
+      <button (click)="setQuickFilter('month')" class="text-sm bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 font-semibold px-3 py-1 rounded-full">This Month</button>
+  </div>
+
+  <div class="flex items-center mb-6">
+    <input 
+      type="checkbox" 
+      id="show-warnings-only" 
+      [checked]="showWarningsOnly()"
+      (change)="toggleShowWarningsOnly($event)" 
+      class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500 cursor-pointer">
+    <label for="show-warnings-only" class="ml-2 text-sm font-medium text-slate-700 cursor-pointer">
+      Show only jobs with issues (zero revenue or missing rate)
+    </label>
   </div>
 
 
-  <div class="border border-brand-border rounded-lg">
-    <div class="max-h-[600px] overflow-y-auto">
+  <div class="border border-slate-200 rounded-lg relative">
+    <div class="max-h-[60vh] overflow-y-auto">
       <table class="w-full text-left">
-        <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border">
+        <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
           <tr>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider cursor-pointer" (click)="setSort('techName')">
+            <th class="p-4 w-12">
+              <input type="checkbox" [checked]="areAllFilteredJobsSelected()" (change)="toggleSelectAll($event)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="setSort('techName')">
               Technician <span class="text-xs">{{ sortField() === 'techName' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
             </th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider cursor-pointer" (click)="setSort('date')">
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="setSort('workOrder')">
+              Work Order <span class="text-xs">{{ sortField() === 'workOrder' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="setSort('date')">
               Date <span class="text-xs">{{ sortField() === 'date' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
             </th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider cursor-pointer" (click)="setSort('taskCode')">
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="setSort('taskCode')">
               Task Code <span class="text-xs">{{ sortField() === 'taskCode' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
             </th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right cursor-pointer" (click)="setSort('quantity')">
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right cursor-pointer" (click)="setSort('effectiveRate')">
+              Rate <span class="text-xs">{{ sortField() === 'effectiveRate' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right cursor-pointer" (click)="setSort('quantity')">
               Qty <span class="text-xs">{{ sortField() === 'quantity' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
             </th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right cursor-pointer" (click)="setSort('revenue')">
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right cursor-pointer" (click)="setSort('revenue')">
               Revenue <span class="text-xs">{{ sortField() === 'revenue' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
             </th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-center">Actions</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-center">Aerial</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-center">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-brand-border">
+        <tbody class="divide-y divide-slate-200">
           @for (job of filteredAndSortedJobs(); track job.id) {
-            <tr class="hover:bg-slate-50/70 group">
-              <td class="p-4" (click)="openEditJobModal(job)">
-                <p class="font-medium text-brand-text-primary">{{ job.techName }}</p>
-                <p class="text-sm text-brand-text-secondary">#{{ job.techId }}</p>
+            <tr class="group cursor-pointer" [class.bg-blue-50]="selectedJobIds().has(job.id)" [class.hover:bg-slate-50]="!selectedJobIds().has(job.id)" (click)="jobCheckbox.click()">
+              <td class="p-4">
+                <input #jobCheckbox type="checkbox" [checked]="selectedJobIds().has(job.id)" (change)="toggleJobSelection(job.id, $event)" (click)="$event.stopPropagation()" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
               </td>
-              <td class="p-4 text-brand-text-primary" (click)="openEditJobModal(job)">{{ job.date | date:'shortDate' }}</td>
-              <td class="p-4 text-brand-text-primary" (click)="openEditJobModal(job)">{{ job.taskCode }}</td>
-              <td class="p-4 font-mono text-right text-brand-text-primary" (click)="openEditJobModal(job)">{{ job.quantity }}</td>
-              <td class="p-4 font-mono text-right text-brand-text-primary" (click)="openEditJobModal(job)">{{ job.revenue | currency }}</td>
-              <td class="p-4 text-center">
-                <div class="flex justify-center gap-2">
-                   <button (click)="deleteJob(job.id)" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 font-bold py-1 px-3 rounded-md text-sm">Delete</button>
+              <td class="p-4">
+                <div class="flex items-center gap-2">
+                  <div>
+                    <p class="font-medium text-slate-800">{{ job.techName }}</p>
+                    <p class="text-sm text-slate-500">#{{ job.techId }}</p>
+                  </div>
+                  @if (job.warnings.length > 0) {
+                    <div class="group relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.625-1.09 2.13-1.09 2.755 0l5.42 9.485c.625 1.09.077 2.416-1.377 2.416H4.214c-1.454 0-2-1.326-1.377-2.416l5.42-9.485zM10 6a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6zm0 8a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                      </svg>
+                      <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-xs p-2 bg-slate-700 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        {{ job.warnings.join(' ') }}
+                        <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-slate-700"></div>
+                      </div>
+                    </div>
+                  }
                 </div>
+              </td>
+              <td class="p-4 text-slate-500">{{ job.workOrder }}</td>
+              <td class="p-4 text-slate-800">{{ job.date | date:'shortDate' }}</td>
+              <td class="p-4 text-slate-800">{{ job.taskCode }}</td>
+              <td class="p-4 font-mono text-right" [class.text-amber-600]="job.rateOverride !== undefined && job.rateOverride !== null">
+                @if (job.effectiveRate === null) {
+                  <span class="text-slate-400">N/A</span>
+                } @else {
+                  {{ job.effectiveRate | currency }}
+                }
+              </td>
+              <td class="p-4 font-mono text-right text-slate-800">{{ job.quantity }}</td>
+              <td class="p-4 font-mono text-right text-slate-800 font-semibold">{{ job.revenue | currency }}</td>
+              <td class="p-4 text-center">
+                @if (job.taskCode.toLowerCase().includes('fiber') || job.taskCode.toLowerCase().includes('ftth')) {
+                  <button (click)="toggleAerialDrop(job); $event.stopPropagation()"
+                          [title]="job.isAerialDrop ? 'Remove Aerial Drop Payout' : 'Add Aerial Drop Payout'"
+                          class="p-1 rounded-full transition-colors"
+                          [class]="job.isAerialDrop ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'text-slate-400 hover:bg-slate-200'">
+                    @if (job.isAerialDrop) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                        <path d="M11.983 1.904a.75.75 0 0 0-1.292-.782l-5.64 9.63c-.15.256-.013.578.232.578h3.339V18a.75.75 0 0 0 1.293.782l5.64-9.63a.75.75 0 0 0-.233-.99l-4.14-2.366Z" />
+                        <path d="m13.064 4.324-4.14-2.366a.75.75 0 0 0-1.292.782l5.64 9.63a.75.75 0 0 0 1.292-.782L13.064 4.324Z" clip-rule="evenodd" />
+                      </svg>
+                    } @else {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                      </svg>
+                    }
+                  </button>
+                }
+              </td>
+              <td class="p-4 text-center">
+                 <div class="flex justify-center gap-2" (click)="$event.stopPropagation()">
+                    <button (click)="openEditJobModal(job)" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                    <button (click)="openTransferModal(job)" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Transfer</button>
+                    <button (click)="deleteJob(job)" class="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white font-bold py-1 px-3 rounded-md text-sm">Delete</button>
+                 </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="6" class="text-center text-brand-text-secondary py-16">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" /></svg>
-                <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">No Jobs Found</h3>
-                <p class="mt-1">No jobs match your current filters. Try adjusting your search or date range.</p>
+              <td colspan="10" class="text-center text-slate-500 py-16">
+                <h3 class="text-xl font-semibold text-slate-800">No Jobs Found</h3>
+                <p class="mt-1">No jobs match the current filters or none have been uploaded.</p>
               </td>
             </tr>
           }
         </tbody>
       </table>
     </div>
+
+    <!-- Bulk Action Bar -->
+    @if (selectedJobIds().size > 0) {
+      <div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-auto animate-fade-in-fast">
+        <div class="bg-slate-800 text-white rounded-lg shadow-2xl p-3 flex items-center gap-4">
+          <span class="font-semibold text-sm px-2">{{ selectedJobIds().size }} job(s) selected</span>
+          <div class="h-6 w-px bg-slate-600"></div>
+          <button (click)="triggerBulkEdit()" title="Bulk Edit" class="p-2 rounded-md hover:bg-slate-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" /></svg>
+          </button>
+          <button (click)="triggerBulkTransfer()" title="Bulk Transfer" class="p-2 rounded-md hover:bg-slate-700 transition-colors">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M4.25 10.75a.75.75 0 0 1 .75-.75h10a.75.75 0 0 1 0 1.5h-10a.75.75 0 0 1-.75-.75Z" /><path d="m9.25 14.25-3.5-3.5.707-.707L9.75 13.336l3.293-3.293.707.707-3.5 3.5a.75.75 0 0 1-1.06 0Z" /><path d="m9.25 6.25-3.5 3.5.707.707L9.75 7.164l3.293 3.293.707-.707-3.5-3.5a.75.75 0 0 0-1.06 0Z" /></svg>
+          </button>
+          <button (click)="triggerBulkDelete()" title="Bulk Delete" class="p-2 rounded-md hover:bg-slate-700 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+          </button>
+          <div class="h-6 w-px bg-slate-600"></div>
+          <button (click)="clearSelection()" class="text-sm px-2 hover:underline">Clear</button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 
 <!-- Edit Job Modal -->
 @if (showJobModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
-    <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-brand-border">
-      <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">Edit Job for {{ userMap().get(jobToEdit()?.techId || '') }}</h2>
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Edit Job for {{ jobToEdit()?.techName }}</h2>
       <form [formGroup]="jobForm" (ngSubmit)="saveJob()">
         <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-brand-text-primary mb-1.5">Date</label>
-              <input formControlName="date" type="date" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+              <input formControlName="date" type="text" placeholder="MM/DD/YY" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-slate-400">
             </div>
             <div>
-              <label class="block text-sm font-medium text-brand-text-primary mb-1.5">Task Code</label>
-              <input formControlName="taskCode" placeholder="Task Code" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Task Code</label>
+              <input formControlName="taskCode" placeholder="Task Code" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-slate-400">
+            </div>
+             <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Rate Override (Optional)</label>
+              <input formControlName="rateOverride" type="number" step="0.01" list="possible-rates" placeholder="Leave blank for standard rate ({{jobToEdit()?.standardRate | currency}})" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-slate-400">
+              <datalist id="possible-rates">
+                @for(rate of possibleRates(); track rate.value) {
+                    <option [value]="rate.value" [label]="rate.label"></option>
+                }
+              </datalist>
+            </div>
+             <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Quantity</label>
+              <input formControlName="quantity" type="number" placeholder="Quantity" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-slate-400">
             </div>
             <div>
-              <label class="block text-sm font-medium text-brand-text-primary mb-1.5">Quantity</label>
-              <input formControlName="quantity" type="number" placeholder="Quantity" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Revenue</label>
+              <input formControlName="revenue" type="number" step="0.01" placeholder="Revenue" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none placeholder:text-slate-400">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-brand-text-primary mb-1.5">Revenue</label>
-              <input formControlName="revenue" type="number" step="0.01" placeholder="Revenue" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
-            </div>
+            @if (jobToEdit()?.taskCode.toLowerCase().includes('fiber') || jobToEdit()?.taskCode.toLowerCase().includes('ftth')) {
+              <div class="flex items-center gap-2 pt-4 border-t border-slate-200">
+                <input id="job-isAerialDrop" formControlName="isAerialDrop" type="checkbox" (change)="onAerialDropToggleInModal($event)" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                <label for="job-isAerialDrop" class="text-sm font-medium text-slate-700">Add Fiber Aerial Drop Payout</label>
+              </div>
+            }
         </div>
         <div class="flex justify-end gap-4 mt-8">
-          <button type="button" (click)="closeJobModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
-          <button type="submit" [disabled]="jobForm.invalid || isSavingJob()" class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2 px-6 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed">Save Job</button>
+          <button type="button" (click)="closeJobModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="jobForm.invalid || isSavingJob()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isSavingJob() ? 'Saving...' : 'Save Job' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Transfer Job Modal -->
+@if (showTransferModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Transfer Job</h2>
+      <select [(ngModel)]="transferToTechId" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        <option value="" disabled>Select employee to transfer to...</option>
+        @for(employee of transferableEmployees(); track employee.id) {
+            <option [value]="employee.techId">{{ employee.name }} (#{{ employee.techId }})</option>
+        }
+      </select>
+       <div class="flex justify-end gap-4 mt-8">
+        <button type="button" (click)="closeTransferModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+        <button type="button" (click)="confirmTransfer()" [disabled]="!transferToTechId() || isTransferring()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isTransferring() ? 'Transferring...' : 'Confirm Transfer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Job Confirmation Modal -->
+@if (showDeleteJobConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Job Deletion"
+    message="Are you sure you want to permanently delete this job? This action cannot be undone."
+    confirmText="Delete Job"
+    confirmStyle="danger"
+    (confirmed)="handleJobDelete($event)">
+  </app-confirmation-modal>
+}
+
+<!-- BULK MODALS -->
+
+<!-- Bulk Delete Confirmation -->
+@if(showBulkDeleteConfirm()) {
+    <app-confirmation-modal 
+        title="Confirm Bulk Deletion"
+        [message]="'Are you sure you want to permanently delete the ' + selectedJobIds().size + ' selected jobs? This action cannot be undone.'"
+        confirmText="Delete Jobs"
+        confirmStyle="danger"
+        (confirmed)="handleBulkDelete($event)">
+    </app-confirmation-modal>
+}
+
+<!-- Bulk Transfer Modal -->
+@if(showBulkTransferModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Transfer {{selectedJobIds().size}} Jobs</h2>
+      <select [(ngModel)]="bulkTransferToTechId" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        <option value="" disabled>Select employee to transfer to...</option>
+        @for(employee of employees(); track employee.id) {
+            <option [value]="employee.techId">{{ employee.name }} (#{{ employee.techId }})</option>
+        }
+      </select>
+       <div class="flex justify-end gap-4 mt-8">
+        <button type="button" (click)="showBulkTransferModal.set(false)" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+        <button type="button" (click)="confirmBulkTransfer()" [disabled]="!bulkTransferToTechId() || isBulkSaving()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isBulkSaving() ? 'Transferring...' : 'Confirm Transfer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Bulk Edit Modal -->
+@if(showBulkEditModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Bulk Edit {{selectedJobIds().size}} Jobs</h2>
+       <p class="text-sm text-slate-500 mb-4 -mt-4">Only fill in the fields you want to change. Unchanged fields will be ignored.</p>
+      <form [formGroup]="bulkEditForm" (ngSubmit)="saveBulkEdit()">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Change Date To</label>
+            <input formControlName="date" type="text" placeholder="MM/DD/YY" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Change Rate Override To</label>
+            <input formControlName="rateOverride" type="number" step="0.01" placeholder="Leave blank to clear override" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Aerial Drop Status (for Fiber jobs)</label>
+            <select formControlName="isAerialDrop" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+              <option value="">Leave Unchanged</option>
+              <option value="set">Set Aerial Drop</option>
+              <option value="unset">Unset Aerial Drop</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8">
+          <button type="button" (click)="showBulkEditModal.set(false)" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="isBulkSaving()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isBulkSaving() ? 'Saving...' : 'Apply Changes' }}
+          </button>
         </div>
       </form>
     </div>

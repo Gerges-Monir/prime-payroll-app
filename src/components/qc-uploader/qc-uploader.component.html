@@ -1,0 +1,164 @@
+<div class="animate-fade-in space-y-8">
+  <div>
+    <h2 class="text-2xl font-bold text-slate-800">QC & Self-Install Uploads</h2>
+    <p class="text-slate-500 mt-1">Select a date and form to create a new QC image submission.</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-100/70 rounded-lg border border-slate-200">
+    <div>
+      <label for="qc-date" class="block text-sm font-medium text-slate-700 mb-1">Date</label>
+      <input id="qc-date" type="date" [(ngModel)]="selectedDate" class="w-full p-2 bg-white border border-slate-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+    </div>
+    <div>
+      <label for="qc-template" class="block text-sm font-medium text-slate-700 mb-1">Form Type</label>
+      <select id="qc-template" [(ngModel)]="selectedTemplateId" class="w-full p-2 bg-white border border-slate-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+        @if (templates().length === 0) {
+          <option value="" disabled>No forms available</option>
+        }
+        @for (template of templates(); track template.id) {
+          <option [value]="template.id">{{ template.name }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (selectedTemplate()) {
+    <!-- New Submission Form -->
+    <div class="mt-8 pt-8 border-t border-slate-300">
+      <h3 class="text-xl font-bold text-slate-800 mb-4">Create New Submission</h3>
+      <div class="mb-6 max-w-md">
+        <label for="account-number" class="block text-sm font-medium text-slate-700 mb-1">Account Number (Optional)</label>
+        <input id="account-number" type="text" [(ngModel)]="accountNumber" class="w-full p-2 bg-white border border-slate-300 rounded-md shadow-sm" placeholder="e.g., 123456789">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
+        @for (section of uploadSections(); track section.name) {
+          <div class="space-y-3">
+            <div class="group relative aspect-square bg-slate-100 rounded-lg overflow-hidden border-2 border-dashed border-slate-300 transition-all duration-300 hover:border-blue-500">
+              @if (section.previewUrl) {
+                <img [src]="section.previewUrl" [alt]="section.name + ' preview'" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                  <label class="p-3 bg-white/20 rounded-full text-white hover:bg-white/30 cursor-pointer transition-colors" title="Change Image">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" /></svg>
+                    <input type="file" (change)="onFileSelected($event, section)" accept="image/*" class="hidden">
+                  </label>
+                  <button (click)="deleteImage(section.name)" class="p-3 bg-white/20 rounded-full text-white hover:bg-white/30 transition-colors" title="Remove Image">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+                  </button>
+                </div>
+              } @else {
+                <label class="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-slate-200/50 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75Z" /></svg>
+                  <span class="mt-2 text-sm text-slate-500 font-semibold">Upload Image</span>
+                  <input type="file" (change)="onFileSelected($event, section)" accept="image/*" class="hidden">
+                </label>
+              }
+            </div>
+            <p class="text-center font-semibold text-slate-700">{{ section.name }}</p>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- SAVE BAR -->
+    <div class="mt-6 p-4 bg-blue-50/80 backdrop-blur-sm border border-blue-200 rounded-lg shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 sticky bottom-4 z-10">
+      <p class="text-blue-800 font-medium text-center sm:text-left">
+        {{ filesReadyCount() }} image(s) ready for submission.
+      </p>
+      <button (click)="saveSubmission()" [disabled]="!canSave()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px] w-full sm:w-auto">
+        @if (isSaving()) {
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          <span>Saving...</span>
+        } @else {
+          <span>Save New Submission</span>
+        }
+      </button>
+    </div>
+
+    <!-- Submissions for selected date -->
+    <div class="mt-12 pt-8 border-t border-slate-300">
+      <h3 class="text-xl font-bold text-slate-800 mb-4">Submissions for this date</h3>
+      @if (submissionsForSelectedDate().length > 0) {
+        <div class="space-y-8">
+          @for (submission of submissionsForSelectedDate(); track submission.id) {
+            <div class="bg-slate-50 p-6 rounded-lg border border-slate-200 shadow-sm">
+              <div class="flex justify-between items-start mb-4">
+                <div>
+                  <p class="font-semibold text-slate-800">
+                    Account: <span class="font-normal">{{ submission.accountNumber || 'N/A' }}</span>
+                  </p>
+                  <p class="text-sm text-slate-500">
+                    Submitted at {{ submission.dateCreated | date:'shortTime' }}
+                  </p>
+                </div>
+                @if (isToday()) {
+                  <button (click)="deleteSubmission(submission)" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                }
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8">
+                @for (section of selectedTemplate()?.sections; track section) {
+                  @let upload = getUpload(submission, section);
+                  <div class="space-y-3">
+                    <div class="group relative aspect-square bg-slate-200 rounded-lg overflow-hidden border-2 border-dashed border-slate-300 transition-all duration-300 hover:border-blue-500">
+                      @if (upload) {
+                        <img [src]="upload.dataUrl" [alt]="section + ' preview'" class="w-full h-full object-cover">
+                        @if (isToday()) {
+                          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                            <label class="p-3 bg-white/20 rounded-full text-white hover:bg-white/30 cursor-pointer transition-colors" title="Change Image">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" /></svg>
+                              <input type="file" (change)="onReplaceFile($event, section, submission)" accept="image/*" class="hidden">
+                            </label>
+                          </div>
+                        }
+                      } @else {
+                        @if (isToday()) {
+                          <label class="w-full h-full flex flex-col items-center justify-center cursor-pointer hover:bg-slate-300/50 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75Z" /></svg>
+                            <span class="mt-2 text-sm text-slate-500 font-semibold">Upload</span>
+                            <input type="file" (change)="onReplaceFile($event, section, submission)" accept="image/*" class="hidden">
+                          </label>
+                        } @else {
+                           <div class="w-full h-full flex flex-col items-center justify-center cursor-not-allowed bg-slate-200/50">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                              <span class="mt-2 text-sm text-slate-500 font-semibold">Locked</span>
+                          </div>
+                        }
+                      }
+                      @if(updatingImageState()[submission.id + '_' + section] === 'processing') {
+                        <div class="absolute inset-0 bg-black/70 flex items-center justify-center">
+                            <svg class="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        </div>
+                      }
+                    </div>
+                    <p class="text-center font-semibold text-slate-700">{{ section }}</p>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else if (selectedDate() && selectedTemplate()) {
+        <div class="text-center py-10 text-slate-500">
+          <p>No submissions found for this date and form type.</p>
+        </div>
+      }
+    </div>
+
+  } @else {
+    <div class="text-center py-20 text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200">
+      <h3 class="text-xl font-semibold text-slate-800">No Form Selected</h3>
+      <p class="mt-1">Please select a date and form type to begin.</p>
+    </div>
+  }
+</div>
+
+@if (showDeleteConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Deletion"
+    message="Are you sure you want to permanently delete this submission? This action cannot be undone."
+    confirmText="Delete Submission"
+    confirmStyle="danger"
+    (confirmed)="handleDelete($event)">
+  </app-confirmation-modal>
+}

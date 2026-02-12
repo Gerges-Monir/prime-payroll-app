@@ -1,9 +1,10 @@
-import { Component, ChangeDetectionStrategy, inject, computed, output, signal, OnInit, effect } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, ChangeDetectionStrategy, inject, computed, signal, OnInit } from '@angular/core';
+import { CommonModule, DatePipe, CurrencyPipe } from '@angular/common';
 import { DatabaseService } from '../../services/database.service';
 import { UiStateService } from '../../services/ui-state.service';
 import { NotificationService } from '../../services/notification.service';
-import { ProcessedTechnician, Adjustment, Job } from '../../models/payroll.model';
+import { ProcessedTechnician, User } from '../../models/payroll.model';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 
 declare var XLSX: any;
 
@@ -14,18 +15,10 @@ interface WeekOption {
   endDate: Date;
 }
 
-interface DayFilter {
-    date: Date;
-    dayName: string;
-    dayOfMonth: number;
-    dayIndex: number;
-}
-
 @Component({
   selector: 'app-weekly-reports',
   standalone: true,
-  imports: [CommonModule],
-  providers: [DatePipe],
+  imports: [CommonModule, ConfirmationModalComponent, DatePipe, CurrencyPipe],
   templateUrl: './weekly-reports.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -36,11 +29,21 @@ export class WeeklyReportsComponent implements OnInit {
   private datePipe: DatePipe;
   
   isPublishing = signal(false);
+  showPublishConfirm = signal(false);
   selectedWeekId = signal<string | null>(null);
+  selectedTechnicianId = signal<string|null>(null);
+  
+  // New Filters
+  selectedTechId = signal<string>('all');
+  customStartDateInput = signal('');
+  customEndDateInput = signal('');
 
-  // Day Filtering State
-  private dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  selectedDays = signal<Record<number, boolean>>({ 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true });
+  customStartDate = computed(() => this.formatDateToYyyyMmDd(this.customStartDateInput()));
+  customEndDate = computed(() => this.formatDateToYyyyMmDd(this.customEndDateInput()));
+
+  technicians = computed<User[]>(() => 
+    this.dataService.users().filter(u => u.role === 'employee' || u.role === 'sub-admin')
+  );
 
   availableWeeks = computed<WeekOption[]>(() => {
     const jobs = this.dataService.jobs();
@@ -52,75 +55,84 @@ export class WeeklyReportsComponent implements OnInit {
       const itemDate = this.dataService.parseDateAsUTC(item.date);
       if (isNaN(itemDate.getTime())) return;
       const weekStart = this.dataService.getStartOfWeek(itemDate);
+      if (isNaN(weekStart.getTime())) return;
       weekStarts.set(weekStart.toISOString(), weekStart);
     });
 
     return Array.from(weekStarts.entries()).map(([weekStartId, startDate]) => {
       const endDate = new Date(startDate);
       endDate.setUTCDate(startDate.getUTCDate() + 6);
+      endDate.setUTCHours(23, 59, 59, 999);
       return { id: weekStartId, startDate, endDate, display: `${this.datePipe.transform(startDate, 'mediumDate', 'UTC')} - ${this.datePipe.transform(endDate, 'mediumDate', 'UTC')}` };
     }).sort((a, b) => b.startDate.getTime() - a.startDate.getTime());
   });
-
-  dayFilters = computed<DayFilter[]>(() => {
-    const week = this.availableWeeks().find(w => w.id === this.selectedWeekId());
-    if (!week) return [];
-    return Array.from({ length: 7 }, (_, i) => {
-        const date = new Date(week.startDate);
-        date.setUTCDate(date.getUTCDate() + i);
-        return { date, dayName: this.dayNames[i], dayOfMonth: date.getUTCDate(), dayIndex: i };
-    });
-  });
-
+  
   allJobsProcessed = computed(() => this.dataService.publishedPayrolls().length > 0 && this.availableWeeks().length === 0);
 
-  jobsForSelectedWeek = computed(() => {
+  dateRange = computed<{start: Date | null, end: Date | null}>(() => {
     const week = this.availableWeeks().find(w => w.id === this.selectedWeekId());
-    if (!week) return [];
-    return this.dataService.jobs().filter(job => {
-      const jobDate = this.dataService.parseDateAsUTC(job.date);
-      return jobDate >= week.startDate && jobDate <= week.endDate;
-    });
-  });
-
-  filteredJobsForSelectedWeek = computed(() => {
-    const jobsInWeek = this.jobsForSelectedWeek();
-    const activeDayIndexes = Object.keys(this.selectedDays()).filter(k => this.selectedDays()[Number(k)]).map(Number);
-    if (activeDayIndexes.length === 7) return jobsInWeek;
-    return jobsInWeek.filter(job => activeDayIndexes.includes(this.dataService.parseDateAsUTC(job.date).getUTCDay()));
-  });
-
-  reportForSelectedWeek = computed(() => {
-    const weekId = this.selectedWeekId();
-    if (!weekId) return null;
-    const selectedDaysMap = this.selectedDays();
-    const selectedDates = this.dayFilters().filter(d => selectedDaysMap[d.dayIndex]).map(d => d.date);
-
-    if (selectedDates.length === 0) {
-        return this.dataService.processPayrollForJobs(this.filteredJobsForSelectedWeek(), new Date(0), new Date(0));
+    if (week) {
+        return { start: week.startDate, end: week.endDate };
     }
-    const reportStartDate = selectedDates[0];
-    const reportEndDate = new Date(selectedDates[selectedDates.length - 1]);
-    reportEndDate.setUTCHours(23, 59, 59, 999);
-    return this.dataService.processPayrollForJobs(this.filteredJobsForSelectedWeek(), reportStartDate, reportEndDate);
+    const start = this.customStartDate();
+    const end = this.customEndDate();
+    if (start && end) {
+        const startDate = this.dataService.parseDateAsUTC(start);
+        const endDate = this.dataService.parseDateAsUTC(end);
+        endDate.setUTCHours(23, 59, 59, 999);
+        return { start: startDate, end: endDate };
+    }
+    return { start: null, end: null };
+  });
+
+  filteredJobs = computed(() => {
+    const { start, end } = this.dateRange();
+    if (!start || !end) return [];
+    
+    let jobs = this.dataService.jobs().filter(job => {
+      const jobDate = this.dataService.parseDateAsUTC(job.date);
+      return jobDate >= start && jobDate <= end;
+    });
+
+    const techId = this.selectedTechId();
+    if (techId !== 'all') {
+        jobs = jobs.filter(job => job.techId === techId);
+    }
+    
+    return jobs;
+  });
+
+  processedReport = computed(() => {
+    const { start, end } = this.dateRange();
+    if (!start || !end) return null;
+
+    let jobsToProcess = this.filteredJobs();
+    
+    const report = this.dataService.processPayrollForJobs(jobsToProcess, start, end);
+    const techId = this.selectedTechId();
+    if (techId !== 'all') {
+        return report.filter(tech => tech.techId === techId);
+    }
+    return report;
   });
 
   reportSummary = computed(() => {
-    const report = this.reportForSelectedWeek();
+    const report = this.processedReport();
     if (!report) return { totalPayout: 0, totalCompanyRevenue: 0, totalJobs: 0 };
+
+    const totalPayoutInCents = report.reduce((sum, t) => sum + Math.round((t.totalEarnings || 0) * 100), 0);
+    const totalCompanyRevenueInCents = report.reduce((sum, t) => sum + Math.round((t.companyRevenue || 0) * 100), 0);
+    const totalJobs = report.reduce((sum, t) => sum + t.totalJobs, 0);
+
     return {
-      totalPayout: report.reduce((sum, t) => sum + t.totalEarnings, 0),
-      totalCompanyRevenue: report.reduce((sum, t) => sum + t.companyRevenue, 0),
-      totalJobs: report.reduce((sum, t) => sum + t.totalJobs, 0),
+      totalPayout: totalPayoutInCents / 100,
+      totalCompanyRevenue: totalCompanyRevenueInCents / 100,
+      totalJobs,
     };
   });
   
   constructor() {
     this.datePipe = inject(DatePipe);
-    effect(() => {
-        this.selectedWeekId();
-        this.selectedDays.set({ 0: true, 1: true, 2: true, 3: true, 4: true, 5: true, 6: true });
-    }, { allowSignalWrites: true });
   }
 
   ngOnInit() {
@@ -130,49 +142,161 @@ export class WeeklyReportsComponent implements OnInit {
   }
 
   selectWeek(event: Event) {
-    this.selectedWeekId.set((event.target as HTMLSelectElement).value || null);
+    const value = (event.target as HTMLSelectElement).value || null;
+    this.selectedWeekId.set(value);
+    if (value) {
+      this.customStartDateInput.set('');
+      this.customEndDateInput.set('');
+    }
   }
 
-  toggleDay(dayIndex: number): void {
-    this.selectedDays.update(days => ({ ...days, [dayIndex]: !days[dayIndex] }));
+  selectTechnician(event: Event) {
+    this.selectedTechId.set((event.target as HTMLSelectElement).value);
   }
 
-  async publishPayroll(): Promise<void> {
-    const report = this.reportForSelectedWeek();
-    const jobs = this.filteredJobsForSelectedWeek();
+  onCustomDateChange() {
+    if (this.customStartDate() && this.customEndDate()) {
+        if(this.customStartDate()! > this.customEndDate()!) {
+            this.notificationService.showError("Start date cannot be after end date.");
+            return;
+        }
+        this.selectedWeekId.set(null);
+    }
+  }
+
+  handleStartDateChange(event: Event): void {
+    this.customStartDateInput.set((event.target as HTMLInputElement).value);
+    this.onCustomDateChange();
+  }
+
+  handleEndDateChange(event: Event): void {
+    this.customEndDateInput.set((event.target as HTMLInputElement).value);
+    this.onCustomDateChange();
+  }
+
+  private formatDateToYyyyMmDd(dateStr: string): string | null {
+    if (!dateStr) return null;
+
+    // Handle YYYY-MM-DD format directly and validate
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      const d = new Date(Date.UTC(year, month - 1, day));
+      if (d && d.getUTCFullYear() === year && d.getUTCMonth() === month - 1 && d.getUTCDate() === day) {
+        return dateStr;
+      }
+    }
+
+    const digitsOnly = dateStr.replace(/\D/g, '');
+    let month: number, day: number, year: number;
+
+    if (digitsOnly.length === 6) { // MMDDYY
+      month = parseInt(digitsOnly.substring(0, 2), 10);
+      day = parseInt(digitsOnly.substring(2, 4), 10);
+      year = parseInt(digitsOnly.substring(4, 6), 10);
+      year += (year < 50 ? 2000 : 1900);
+    } else if (digitsOnly.length === 8) { // MMDDYYYY
+      month = parseInt(digitsOnly.substring(0, 2), 10);
+      day = parseInt(digitsOnly.substring(2, 4), 10);
+      year = parseInt(digitsOnly.substring(4, 8), 10);
+    } else if (dateStr.includes('/')) {
+      const parts = dateStr.split('/');
+      if (parts.length === 3) {
+        month = parseInt(parts[0], 10);
+        day = parseInt(parts[1], 10);
+        year = parseInt(parts[2], 10);
+        if (year < 100) {
+          year += (year < 50 ? 2000 : 1900);
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+    if (isNaN(month) || isNaN(day) || isNaN(year) || year < 1900 || year > 2100) {
+      return null;
+    }
+    
+    // Final date validation
+    const testDate = new Date(Date.UTC(year, month - 1, day));
+    if (testDate.getUTCFullYear() !== year || testDate.getUTCMonth() !== month - 1 || testDate.getUTCDate() !== day) {
+      return null;
+    }
+    
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }
+
+  toggleTechnicianDetails(techId: string) {
+    this.selectedTechnicianId.update(current => current === techId ? null : techId);
+  }
+
+  publishPayroll(): void {
+    console.log('[Weekly Reports] 1. "Publish Payroll" button clicked.');
+    const report = this.processedReport();
     
     if (!report || report.length === 0) {
         this.notificationService.showError("No data to publish.");
-        return;
-    }
-
-    const selectedDates = this.dayFilters().filter(d => this.selectedDays()[d.dayIndex]).map(d => d.date);
-    if (selectedDates.length === 0) {
-        this.notificationService.showError("Please select at least one day.");
+        console.log('[Weekly Reports] 2. ❌ Aborted: No report data to publish.');
         return;
     }
     
-    const startDate = selectedDates[0].toISOString().split('T')[0];
-    const endDate = selectedDates[selectedDates.length - 1].toISOString().split('T')[0];
+    const { start, end } = this.dateRange();
+    if (!start || !end) {
+        this.notificationService.showError("Please select a valid date range.");
+        console.log('[Weekly Reports] 2. ❌ Aborted: Invalid date range selected.');
+        return;
+    }
+    
+    console.log('[Weekly Reports] 2. Showing confirmation modal for publication.');
+    this.showPublishConfirm.set(true);
+  }
 
-    if (confirm(`Publish payroll for ${startDate} to ${endDate}? This is final and will be visible to employees.`)) {
-      this.isPublishing.set(true);
-      try {
+  async handlePublish(confirmed: boolean): Promise<void> {
+    this.showPublishConfirm.set(false);
+    
+    if (!confirmed) {
+        console.log('[Weekly Reports] 4. User cancelled publication.');
+        return;
+    }
+      
+    console.log('[Weekly Reports] 4. User confirmed publication.');
+    const report = this.processedReport();
+    const jobs = this.filteredJobs();
+    const { start, end } = this.dateRange();
+
+    // Redundant checks, but good for safety
+    if (!report || report.length === 0 || !start || !end || !jobs) {
+        this.notificationService.showError("Data became invalid during confirmation. Please try again.");
+        console.error('[Weekly Reports] ❌ Aborted: Data was invalid after confirmation.');
+        return;
+    }
+    
+    const startDate = start.toISOString().split('T')[0];
+    const endDate = end.toISOString().split('T')[0];
+    
+    console.log(`[Weekly Reports] 3. Report contains ${report.length} technician(s) and ${jobs.length} job(s).`);
+
+    this.isPublishing.set(true);
+    try {
+        console.log('[Weekly Reports] 5. Calling dataService.publishPayroll...');
         const payrollId = await this.dataService.publishPayroll(report, jobs, startDate, endDate);
+        console.log(`[Weekly Reports] 6. ✅ Successfully published. Received payroll ID: ${payrollId}`);
         this.notificationService.showSuccess('Payroll published successfully! Navigating to history...');
         this.uiStateService.adminActiveTab.set('history');
         this.uiStateService.navigateToPayrollId.set(payrollId);
-      } catch (error) {
+    } catch (error) {
         const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[Weekly Reports] 6. ❌ Error during publish process:`, error);
         this.notificationService.showError(msg);
-      } finally {
+    } finally {
         this.isPublishing.set(false);
-      }
+        console.log('[Weekly Reports] 7. Publish process finished.');
     }
   }
 
   downloadExcel() {
-    const report = this.reportForSelectedWeek();
+    const report = this.processedReport();
     if (!report || report.length === 0) return;
     
     const dataForSheet = report.map(tech => ({
@@ -187,6 +311,8 @@ export class WeeklyReportsComponent implements OnInit {
   }
 
   getAdjustmentsTotal(tech: ProcessedTechnician): number {
-    return tech.adjustments.reduce((sum, adj) => sum + adj.amount, 0);
+    if (!tech.adjustments || tech.adjustments.length === 0) return 0;
+    const totalInCents = tech.adjustments.reduce((sum, adj) => sum + Math.round((adj.amount || 0) * 100), 0);
+    return totalInCents / 100;
   }
 }

@@ -1,0 +1,89 @@
+.kpi-card {
+    @apply bg-white p-4 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md hover:-translate-y-1;
+}
+
+.kpi-label {
+    @apply text-sm font-semibold text-slate-500 mb-1;
+}
+
+.kpi-value {
+    @apply text-3xl font-bold text-slate-800;
+}
+
+.kpi-change {
+    @apply text-sm font-semibold flex items-center gap-1 mt-1;
+}
+
+.kpi-change.positive {
+    @apply text-green-600;
+}
+
+.kpi-change.negative {
+    @apply text-red-600;
+}
+
+.bar-chart-container {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-end;
+    height: 250px;
+    padding: 1rem 0.5rem;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 1rem;
+}
+
+.bar-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+}
+
+.bar-wrapper {
+    width: 100%;
+    flex-grow: 1;
+    background-color: #f1f5f9;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-end;
+    overflow: visible; /* Allow label to show */
+    position: relative;
+}
+
+.bar {
+    width: 100%;
+    background-color: #3b82f6;
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    transition: height 0.5s ease-out;
+    animation: grow 0.5s ease-out forwards;
+}
+
+.bar-label {
+    position: absolute;
+    bottom: 100%; /* Position above the bar */
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 4px; /* Space between bar and label */
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1e293b;
+    background: rgba(241, 245, 249, 0.8);
+    padding: 2px 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.metric-name {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #475569;
+    margin-top: 0.5rem;
+    line-height: 1.2;
+}
+
+@keyframes grow {
+    from { height: 0%; }
+}

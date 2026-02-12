@@ -1,0 +1,83 @@
+<div class="animate-fade-in space-y-6">
+  <div>
+    <h2 class="text-xl font-semibold text-slate-800">Brightspeed Manual Job Entry</h2>
+    <p class="text-slate-500">Manually add jobs for Brightspeed employees. The job's revenue will be calculated using the company rates from the 'Brightspeed' rate category. The employee's payout will be based on the rate category assigned to them in 'Manage Employees'.</p>
+  </div>
+  
+  @if(brightspeedTasks().length === 0) {
+    <div class="p-4 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg">
+      <p class="font-semibold">Warning: 'Brightspeed' rate category not found or has no rates.</p>
+      <p class="text-sm">The system could not find the necessary task codes. This feature may not work correctly until the 'Brightspeed' rate category is seeded or created with its associated tasks and rates.</p>
+    </div>
+  }
+
+  <form [formGroup]="entryForm" (ngSubmit)="saveAllJobs()">
+    <!-- Top Level Selections -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-100/70 rounded-lg border border-slate-200 mb-6">
+      <div>
+        <label for="employee-select" class="block text-sm font-medium text-slate-700 mb-1">Select Employee</label>
+        <select id="employee-select" formControlName="employeeId" class="w-full p-3 bg-white border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+          <option value="" disabled>Choose an employee...</option>
+          @for(emp of employees(); track emp.id) {
+            <option [value]="emp.id">{{ emp.name }} (#{{ emp.techId }})</option>
+          }
+        </select>
+      </div>
+      <div>
+        <label for="job-date" class="block text-sm font-medium text-slate-700 mb-1">Date for all jobs</label>
+        <input id="job-date" type="date" formControlName="jobDate" class="w-full p-3 bg-white border border-slate-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+      </div>
+    </div>
+
+    <!-- Job Entry Rows -->
+    <div formArrayName="jobs" class="space-y-4">
+      <h3 class="text-lg font-semibold text-slate-800">Job Entries</h3>
+      @for(jobGroup of jobsFormArray.controls; track $index) {
+        <div [formGroupName]="$index" class="grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
+          <!-- Task Code -->
+          <div class="col-span-12 md:col-span-5">
+            <label class="block text-xs font-medium text-slate-500 mb-1">Task</label>
+            <select formControlName="taskCode" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-sm">
+              <option value="" disabled>Select a task...</option>
+              @for (task of brightspeedTasks(); track task.taskCode) {
+                <option [value]="task.taskCode">{{ task.taskCode }} ({{ task.rate | currency }} revenue)</option>
+              }
+            </select>
+          </div>
+          <!-- Quantity -->
+          <div class="col-span-4 md:col-span-2">
+            <label class="block text-xs font-medium text-slate-500 mb-1">Qty</label>
+            <input type="number" formControlName="quantity" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-sm">
+          </div>
+          <!-- Work Order -->
+          <div class="col-span-8 md:col-span-4">
+            <label class="block text-xs font-medium text-slate-500 mb-1">Work Order #</label>
+            <input type="text" formControlName="workOrder" class="w-full p-2 bg-slate-50 border border-slate-300 rounded-md text-sm">
+          </div>
+          <!-- Remove Button -->
+          <div class="col-span-4 md:col-span-1">
+            <button type="button" (click)="removeJobRow($index)" [disabled]="jobsFormArray.length <= 1" class="w-full p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-md flex-shrink-0 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed" title="Remove row">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 p-4 bg-slate-100 rounded-lg border border-slate-200">
+        <button type="button" (click)="addJobRow()" class="text-sm bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-3 rounded-lg flex items-center gap-2 w-full sm:w-auto justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+            Add Another Job
+        </button>
+        <button type="submit" [disabled]="entryForm.invalid || isSaving()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center min-w-[200px] w-full sm:w-auto">
+             @if (isSaving()) {
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span>Saving...</span>
+            } @else {
+                <span>Save All Jobs</span>
+            }
+        </button>
+    </div>
+  </form>
+</div>

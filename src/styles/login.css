@@ -1,0 +1,317 @@
+
+
+
+.login-page-bg {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #0ea5e9 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-page-bg::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    top: -200px;
+    right: -200px;
+    animation: float 6s ease-in-out infinite;
+}
+
+.login-page-bg::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 50%;
+    bottom: -150px;
+    left: -150px;
+    animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+.login-container {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 450px;
+    padding: 50px 40px;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    animation: fadeIn 0.8s ease-out 0.2s backwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.login-container .logo {
+    width: 280px;
+    height: auto;
+    margin-bottom: 10px;
+    transition: transform 0.3s ease;
+}
+
+.login-container .logo:hover {
+    transform: scale(1.03);
+}
+
+.login-container h2 {
+    color: #0ea5e9;
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 10px;
+    animation: fadeIn 0.8s ease-out 0.3s backwards;
+}
+
+.login-container .subtitle {
+    color: rgb(71 85 105);
+    font-size: 14px;
+    margin-bottom: 30px;
+    text-align: center;
+    animation: fadeIn 0.8s ease-out 0.4s backwards;
+}
+
+.form-group {
+    margin-bottom: 25px;
+    animation: fadeIn 0.8s ease-out 0.5s backwards;
+}
+
+.form-group:nth-child(2) {
+    animation-delay: 0.6s;
+}
+
+.login-container label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgb(30 41 59);
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.login-container input[type="text"],
+.login-container input[type="email"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid rgb(226 232 240);
+    border-radius: 10px;
+    font-size: 15px;
+    transition: all 0.3s ease;
+    background: rgb(248 250 252);
+    color: rgb(30 41 59);
+}
+
+.login-container input::placeholder {
+    color: rgb(71 85 105);
+}
+
+.login-container input[type="text"]:focus,
+.login-container input[type="email"]:focus,
+.login-container input[type="password"]:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    transform: translateY(-2px);
+}
+
+.login-container input[type="text"]:hover:not(:focus),
+.login-container input[type="email"]:hover:not(:focus),
+.login-container input[type="password"]:hover:not(:focus) {
+    border-color: rgba(71, 85, 105, 0.5);
+}
+
+.forgot-password {
+    text-align: right;
+    margin-top: -15px;
+    margin-bottom: 25px;
+    position: relative;
+    animation: fadeIn 0.8s ease-out 0.7s backwards;
+}
+
+.forgot-password a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.sign-in-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #0ea5e9 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out 0.8s backwards;
+}
+
+.sign-in-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.sign-in-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 50%, #2563eb 100%);
+    transition: left 0.4s ease;
+}
+
+.sign-in-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.sign-in-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.4);
+}
+
+.sign-in-btn:hover:not(:disabled)::before {
+    left: 0;
+}
+
+.sign-in-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.divider {
+    text-align: center;
+    margin: 30px 0;
+    position: relative;
+    animation: fadeIn 0.8s ease-out 0.9s backwards;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 1px;
+    background: rgb(226 232 240);
+}
+
+.divider span {
+    background: #fff;
+    padding: 0 15px;
+    color: rgb(71 85 105);
+    font-size: 13px;
+    position: relative;
+    z-index: 1;
+}
+
+.signup-link {
+    text-align: center;
+    color: rgb(71 85 105);
+    font-size: 14px;
+    animation: fadeIn 0.8s ease-out 1s backwards;
+}
+
+.signup-link a {
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.signup-link a:hover {
+    color: #2563eb;
+}
+
+.login-error {
+    background: #FEE2E2;
+    border-left: 4px solid #EF4444;
+    color: #B91C1C;
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.reset-message {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    border-left: 4px solid;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.reset-message.success {
+    background-color: #D1FAE5;
+    border-color: #10B981;
+    color: #065F46;
+}
+
+.reset-message.error {
+    background: #FEE2E2;
+    border-color: #EF4444;
+    color: #B91C1C;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 40px 30px;
+    }
+
+    .login-container .logo {
+        width: 240px;
+    }
+}

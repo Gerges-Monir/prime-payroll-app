@@ -1,11 +1,12 @@
-<div class="min-h-screen bg-brand-background text-brand-text-primary font-sans">
-  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+<div class="flex flex-col flex-grow font-sans">
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
     <!-- Header -->
     <app-dashboard-header
       [pageTitle]="'My Dashboard'"
       [description]="'Welcome back, ' + (currentUser()?.name || '') +'.'"
       [showLogout]="true"
-      (logout)="logout()">
+      (logout)="logout()"
+      (logoClicked)="selectReport(null)">
     </app-dashboard-header>
 
     <!-- Main Content -->
@@ -14,25 +15,21 @@
         
         <!-- Sidebar: Pay Period Selection -->
         <aside class="lg:col-span-1">
-           <h3 class="text-lg font-semibold mb-4 px-2 text-brand-text-primary">Pay Periods</h3>
+           <h3 class="text-lg font-semibold mb-4 px-2 text-slate-800">Pay Periods</h3>
             <div class="space-y-2">
-              <button 
-                (click)="selectReport(null)"
-                class="w-full text-left p-4 rounded-lg transition-all duration-200 group relative"
-                [class]="selectedReportId() === null ? 'bg-brand-primary text-white shadow-md' : 'bg-brand-surface hover:bg-slate-50 text-brand-text-primary border border-brand-border'">
-                 <span class="font-semibold block">Current Period</span>
-                 <span class="text-sm opacity-80 block">Unprocessed Jobs</span>
-              </button>
-              
-              <div class="bg-brand-surface rounded-lg max-h-[60vh] overflow-y-auto border border-brand-border shadow-sm p-2 space-y-2">
+              <div class="bg-white rounded-lg max-h-[60vh] overflow-y-auto border border-slate-200 shadow-sm p-2 space-y-2">
                 @for (report of payrollHistory(); track report.id) {
                   <button 
                     (click)="selectReport(report.id)"
                     class="w-full text-left p-3 rounded-md transition-colors duration-200"
-                    [class]="selectedReportId() === report.id ? 'bg-brand-nav-active-bg text-brand-nav-active-text' : 'hover:bg-slate-100'">
+                    [class]="(selectedReportId() === report.id || (selectedReportId() === null && payrollHistory().length > 0 && payrollHistory()[0].id === report.id)) ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100/70'">
                     <p class="font-semibold">{{ report.startDate | date:'mediumDate' }}</p>
                     <p class="text-sm opacity-70">to {{ report.endDate | date:'mediumDate' }}</p>
                   </button>
+                } @empty {
+                  <div class="p-8 text-center text-slate-500">
+                    <p>No finalized payroll history yet.</p>
+                  </div>
                 }
               </div>
             </div>
@@ -40,113 +37,150 @@
 
         <!-- Details -->
         <div class="lg:col-span-3">
-          @if (selectedReport(); as report) {
-            @let data = report.reportData;
-            <div class="animate-fade-in space-y-8">
-              <!-- Header Card -->
-              <div class="bg-brand-surface p-6 sm:p-8 rounded-xl border border-brand-border shadow-sm">
-                 <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
-                    <div>
-                      <p class="text-brand-text-secondary text-sm">Payout for {{ report.startDate | date:'MMM d' }} - {{ report.endDate | date:'MMM d, y' }}</p>
-                      <p class="text-5xl lg:text-6xl font-bold text-brand-success mt-2">{{ data.totalEarnings | currency:'USD':'symbol':'1.2-2' }}</p>
-                    </div>
-                    <button (click)="downloadReportAsPDF(report)" class="bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-bold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-colors shadow-sm hover:shadow-md">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                      <span>Download PDF</span>
-                    </button>
-                 </div>
-              </div>
-              
-              <!-- Stat Cards -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div class="bg-brand-surface p-5 rounded-xl border border-brand-border shadow-sm"><div class="text-brand-text-secondary text-sm">Total Jobs</div><div class="text-3xl font-bold text-brand-text-primary mt-1">{{ data.totalJobs }}</div></div>
-                 <div class="bg-brand-surface p-5 rounded-xl border border-brand-border shadow-sm"><div class="text-brand-text-secondary text-sm">Base Earnings</div><div class="text-3xl font-bold text-brand-text-primary mt-1">{{ baseEarnings() | currency }}</div></div>
-                 <div class="bg-brand-surface p-5 rounded-xl border border-brand-border shadow-sm"><div class="text-brand-text-secondary text-sm">Average Per Job</div><div class="text-3xl font-bold text-brand-text-primary mt-1">{{ data.avgPerJob | currency }}</div></div>
-              </div>
+          <!-- View Toggles -->
+          <div class="mb-6 flex items-center gap-2 p-1 bg-slate-100 rounded-lg border border-slate-200 w-fit shadow-sm flex-wrap">
+              <button (click)="activeView.set('paystub')" [class]="activeView() === 'paystub' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+                Paystub
+              </button>
+              <button (click)="activeView.set('performance')" [class]="activeView() === 'performance' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+                Performance
+              </button>
+               <button (click)="activeView.set('1099-forms')" [class]="activeView() === '1099-forms' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+                1099 Form
+              </button>
+              <button (click)="activeView.set('chargebacks')" [class]="activeView() === 'chargebacks' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+                Chargebacks
+              </button>
+              <button (click)="activeView.set('qcUploads')" [class]="activeView() === 'qcUploads' ? 'bg-white shadow-md' : 'text-slate-600'" class="px-4 py-1.5 rounded-md text-sm font-semibold transition-all">
+                QC & Self-ins Uploading
+              </button>
+          </div>
 
-              <!-- Breakdowns -->
-              <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                  <!-- Adjustments -->
-                  <div class="lg:col-span-2 bg-brand-surface p-6 rounded-xl border border-brand-border shadow-sm">
-                      <h3 class="text-xl font-semibold mb-4 text-brand-text-primary">Adjustments</h3>
-                      @if(data.adjustments.length > 0) {
-                        <ul class="divide-y divide-brand-border -mx-6">
-                          @for(adj of data.adjustments; track adj.id) {
-                            <li class="flex justify-between items-center py-3.5 px-6">
-                              <div>
-                                <p class="font-semibold text-brand-text-primary">{{ adj.description }}</p>
-                                <p class="text-sm text-brand-text-secondary">{{ adj.type }}</p>
-                              </div>
-                              <span class="text-lg font-mono font-bold" [class.text-brand-success]="adj.amount > 0" [class.text-brand-danger]="adj.amount < 0">{{ adj.amount | currency }}</span>
-                            </li>
+          @if (activeView() === 'paystub') {
+            @if (paystubData(); as stub) {
+              @let report = stub.report;
+              @let data = stub.data;
+              <div class="animate-fade-in space-y-6">
+                <!-- Header -->
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                  <div>
+                      <h2 class="text-2xl font-bold text-slate-800">Paystub for {{ report.startDate | date:'MMM d' }} - {{ report.endDate | date:'MMM d, y' }}</h2>
+                      <p class="text-slate-500">Published on {{ report.publishedDate | date:'longDate' }}</p>
+                  </div>
+                  <div class="flex gap-2 flex-shrink-0">
+                      <button (click)="downloadExcelReport()" class="bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10 3.75a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5a.75.75 0 0 1 .75-.75Z M10 8a.75.75 0 0 1 .75.75v6.5a.75.75 0 0 1-1.5 0v-6.5A.75.75 0 0 1 10 8Z" /><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z" clip-rule="evenodd" /></svg>Excel</button>
+                      <button (click)="downloadPaystubAsPDF()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm.75-11.25a.75.75 0 0 0-1.5 0v4.59L7.3 9.24a.75.75 0 0 0-1.1 1.02l3.25 3.5a.75.75 0 0 0 1.1 0l3.25-3.5a.75.75 0 1 0-1.1-1.02l-1.95 2.1V6.75Z" clip-rule="evenodd" /></svg>Paystub</button>
+                  </div>
+                </div>
+                
+                <!-- Paystub -->
+                <div class="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+                  <!-- Company/Employee Header -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pb-4 border-b border-dashed border-slate-200">
+                    <div>
+                      <img [src]="companySettings().logoUrl" [alt]="companySettings().companyName + ' Logo'" class="h-12 mb-2">
+                      <p class="font-semibold text-slate-800">{{ companySettings().companyName }}</p>
+                      <p class="text-sm text-slate-500">{{ companySettings().companyAddress1 }}</p>
+                      <p class="text-sm text-slate-500">{{ companySettings().companyAddress2 }}</p>
+                    </div>
+                    <div class="text-sm">
+                      <p><span class="font-semibold text-slate-800 w-24 inline-block">Employee:</span> <span class="text-slate-500">{{ currentUser()?.name }}</span></p>
+                      <p><span class="font-semibold text-slate-800 w-24 inline-block">Tech ID:</span> <span class="text-slate-500">{{ currentUser()?.techId }}</span></p>
+                      <p><span class="font-semibold text-slate-800 w-24 inline-block">Email:</span> <span class="text-slate-500">{{ currentUser()?.email }}</span></p>
+                      <p><span class="font-semibold text-slate-800 w-24 inline-block">SSN:</span> <span class="font-mono text-slate-500">{{ maskedTin() }}</span></p>
+                      <p><span class="font-semibold text-slate-800 w-24 inline-block">Payment ID:</span> <span class="text-slate-500">{{ report.paymentId }}</span></p>
+                    </div>
+                  </div>
+
+                  <!-- Main Summary -->
+                  <div class="bg-slate-100/70 p-4 rounded-lg border border-slate-200">
+                    <div class="flex justify-between items-center">
+                      <span class="text-slate-600 font-medium">Net Payment</span>
+                      <span class="text-3xl font-bold text-green-600">{{ stub.netPay | currency:'USD':'symbol':'1.2-2' }}</span>
+                    </div>
+                     <div class="flex justify-between items-center mt-1">
+                      <span class="text-slate-500 text-sm">Year-to-Date Earnings</span>
+                      <span class="text-lg font-semibold text-slate-800">{{ stub.ytdEarnings | currency }}</span>
+                    </div>
+                  </div>
+
+                  <!-- Earnings & Deductions Summary -->
+                   <div>
+                      <h4 class="font-semibold text-lg mb-2 text-slate-800">Payment Summary</h4>
+                      <table class="w-full text-sm">
+                        <thead class="border-b border-slate-200"><tr><th class="text-left font-semibold py-2">Description</th><th class="text-right font-semibold py-2">Amount</th></tr></thead>
+                        <tbody>
+                          <tr class="border-b border-slate-200/50"><td class="py-2">Base Earnings</td><td class="text-right py-2 font-mono">{{ stub.jobEarnings | currency }}</td></tr>
+                          @if (stub.totalBonus !== 0) {
+                             <tr class="border-b border-slate-200/50 text-green-600"><td class="py-2">Bonus</td><td class="text-right py-2 font-mono">{{ stub.totalBonus | currency }}</td></tr>
                           }
-                        </ul>
-                      } @else {
-                        <p class="text-center text-brand-text-secondary py-4">No bonuses or deductions for this period.</p>
-                      }
-                  </div>
-                  <!-- Jobs -->
-                  <div class="lg:col-span-3 bg-brand-surface p-6 rounded-xl border border-brand-border shadow-sm">
-                      <h3 class="text-xl font-semibold mb-4 text-brand-text-primary">Jobs</h3>
-                       @if(data.processedJobs && data.processedJobs.length > 0) {
-                        <div class="max-h-[400px] overflow-y-auto border border-brand-border rounded-md">
-                          <table class="w-full text-left">
-                            <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border"><tr><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Date</th><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Task</th><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Rate</th><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Earning</th></tr></thead>
-                            <tbody class="divide-y divide-brand-border">
-                              @for(job of data.processedJobs; track job.id) {
-                                <tr class="hover:bg-slate-50/70"><td class="p-3 text-brand-text-primary text-sm">{{ job.date | date:'shortDate' }}</td><td class="p-3 text-brand-text-primary text-sm">{{ job.taskCode }}</td><td class="p-3 font-mono text-right text-brand-text-secondary text-sm">{{ job.rateApplied | currency }}</td><td class="p-3 font-mono text-right text-brand-text-primary text-sm font-semibold">{{ job.earning | currency }}</td></tr>
-                              }
-                            </tbody>
-                          </table>
-                        </div>
-                      } @else {
-                        <p class="text-center text-brand-text-secondary py-8">No jobs recorded for this period.</p>
-                      }
-                  </div>
+                          <tr class="border-b border-slate-200/50 font-semibold"><td class="py-2">Gross Earnings</td><td class="text-right py-2 font-mono">{{ stub.grossEarnings | currency }}</td></tr>
+                          @if (stub.totalChargeback !== 0) {
+                             <tr class="border-b border-slate-200/50 text-red-600"><td class="py-2">Chargeback</td><td class="text-right py-2 font-mono">{{ stub.totalChargeback | currency }}</td></tr>
+                          }
+                          @if (stub.totalLoan !== 0) {
+                             <tr class="border-b border-slate-200/50 text-red-600"><td class="py-2">Loan</td><td class="text-right py-2 font-mono">{{ stub.totalLoan | currency }}</td></tr>
+                          }
+                          @for (deduction of stub.itemizedDeductions; track deduction.id) {
+                            <tr class="border-b border-slate-200/50 text-red-600">
+                              <td class="py-2">{{ deduction.description }}</td>
+                              <td class="text-right py-2 font-mono">{{ deduction.amount | currency }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                        <tfoot>
+                          @if (stub.totalDeductions !== 0) {
+                            <tr><td class="text-right font-bold pt-2">Total Deductions</td><td class="text-right font-bold pt-2 font-mono text-red-600">{{ stub.totalDeductions | currency }}</td></tr>
+                          }
+                          <tr><td class="text-right font-bold pt-2 text-lg">Net Pay</td><td class="text-right font-bold pt-2 font-mono text-lg text-green-600">{{ stub.netPay | currency }}</td></tr>
+                        </tfoot>
+                      </table>
+                    </div>
+
+                   <!-- Job Details -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-4 text-slate-800">Jobs Completed</h3>
+                         @if(data.processedJobs && data.processedJobs.length > 0) {
+                          <div class="max-h-[400px] overflow-y-auto border border-slate-200 rounded-md shadow-inner">
+                            <table class="w-full text-left text-sm">
+                              <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200"><tr><th class="p-3 font-semibold text-slate-500">Date</th><th class="p-3 font-semibold text-slate-500">Task</th><th class="p-3 font-semibold text-slate-500 text-right">Rate</th><th class="p-3 font-semibold text-slate-500 text-right">Earning</th></tr></thead>
+                              <tbody class="divide-y divide-slate-200 bg-white">
+                                @for(job of data.processedJobs; track job.id) {
+                                  <tr class="hover:bg-slate-100/70"><td class="p-3 text-slate-800">{{ job.date | date:'shortDate' }}</td><td class="p-3 text-slate-800">{{ job.taskCode }}</td><td class="p-3 font-mono text-right text-slate-500">{{ job.rateApplied | currency }}</td><td class="p-3 font-mono text-right text-slate-800 font-semibold">{{ job.earning | currency }}</td></tr>
+                                }
+                              </tbody>
+                            </table>
+                          </div>
+                        } @else {
+                          <p class="text-center text-slate-500 py-8">No jobs recorded for this period.</p>
+                        }
+                    </div>
+                </div>
               </div>
+            } @else {
+              <div class="h-full flex items-center justify-center text-center text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200 p-8 animate-fade-in">
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" /></svg>
+                  <h2 class="text-2xl font-bold text-slate-800 mt-4">No Payroll History Found</h2>
+                  <p class="mt-2 text-lg">Your finalized paystubs will appear here once they are published by an administrator.</p>
+                </div>
+              </div>
+            }
+          } @else if (activeView() === 'performance') {
+            <div class="animate-fade-in bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+              <app-performance-viewer [userId]="currentUser()!.id"></app-performance-viewer>
             </div>
-          } @else {
-             <!-- Current Unprocessed Jobs View -->
-             <div class="animate-fade-in space-y-8">
-                <div class="bg-brand-surface p-6 sm:p-8 rounded-xl border border-brand-border shadow-sm">
-                   <p class="text-brand-text-secondary text-sm">Estimated earnings for current period</p>
-                   <p class="text-5xl lg:text-6xl font-bold text-brand-primary mt-2">{{ unprocessedSummary().estimatedEarnings | currency:'USD':'symbol':'1.2-2' }}</p>
-                </div>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div class="bg-brand-surface p-5 rounded-xl border border-brand-border shadow-sm">
-                      <div class="text-brand-text-secondary text-sm">Unprocessed Jobs</div>
-                      <div class="text-3xl font-bold text-brand-text-primary mt-1">{{ unprocessedSummary().totalJobs }}</div>
-                  </div>
-                   <div class="bg-brand-surface p-5 rounded-xl border border-brand-border shadow-sm">
-                      <div class="text-brand-text-secondary text-sm">Total Revenue Generated</div>
-                      <div class="text-3xl font-bold text-brand-text-primary mt-1">{{ unprocessedSummary().totalRevenue | currency }}</div>
-                  </div>
-                </div>
-                 <div class="bg-brand-surface p-6 rounded-xl border border-brand-border shadow-sm">
-                    <h3 class="text-xl font-semibold mb-4 text-brand-text-primary">Unprocessed Jobs Details</h3>
-                     @if(unprocessedJobsWithEarnings().length > 0) {
-                      <div class="max-h-[400px] overflow-y-auto border border-brand-border rounded-md">
-                        <table class="w-full text-left">
-                          <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border"><tr><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Date</th><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Task</th><th class="p-3 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Est. Earning</th></tr></thead>
-                          <tbody class="divide-y divide-brand-border">
-                            @for(job of unprocessedJobsWithEarnings(); track job.id) {
-                              <tr class="hover:bg-slate-50/70">
-                                <td class="p-3 text-brand-text-primary text-sm">{{ job.date | date:'shortDate' }}</td>
-                                <td class="p-3 text-brand-text-primary text-sm">{{ job.taskCode }} (x{{job.quantity}})</td>
-                                <td class="p-3 font-mono text-right text-brand-text-primary text-sm font-semibold">{{ job.earning | currency }}</td>
-                              </tr>
-                            }
-                          </tbody>
-                        </table>
-                      </div>
-                    } @else {
-                      <div class="text-center text-brand-text-secondary py-8 rounded-lg border-2 border-dashed border-brand-border">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-12 w-12 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
-                         <h3 class="mt-4 text-lg font-semibold text-brand-text-primary">All Caught Up!</h3>
-                         <p class="mt-1 text-sm">No jobs have been uploaded for the upcoming pay period yet.</p>
-                      </div>
-                    }
-                </div>
+          } @else if (activeView() === '1099-forms') {
+            <div class="animate-fade-in bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+              <app-tax-forms></app-tax-forms>
+            </div>
+          } @else if (activeView() === 'chargebacks') {
+            <div class="animate-fade-in bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+              <app-chargeback-history [userId]="currentUser()!.id"></app-chargeback-history>
+            </div>
+          } @else if (activeView() === 'qcUploads') {
+            <div class="animate-fade-in bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+              <app-qc-uploader></app-qc-uploader>
             </div>
           }
         </div>

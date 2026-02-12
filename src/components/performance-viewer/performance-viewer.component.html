@@ -1,0 +1,73 @@
+<div class="animate-fade-in space-y-6">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Weekly Performance</h2>
+      <p class="text-slate-500">Review your published performance reports.</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-col sm:flex-row gap-4">
+    <div class="flex-1">
+      <label for="perf-week-select" class="block text-sm font-medium text-slate-500 mb-1">Select Week</label>
+      <select id="perf-week-select" [(ngModel)]="selectedWeek" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+        @if (availableWeeks().length === 0) {
+          <option value="" disabled>No published performance reports available</option>
+        }
+        @for(week of availableWeeks(); track week.id) {
+          <option [value]="week.id">{{ week.display }}</option>
+        }
+      </select>
+    </div>
+    @if(isTeamView()) {
+       <div class="flex-1">
+        <label for="team-member-select" class="block text-sm font-medium text-slate-500 mb-1">Select Team Member</label>
+        <select id="team-member-select" [(ngModel)]="selectedTeamUserId" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          <option [ngValue]="null" disabled>Choose a team member...</option>
+           @for(user of teamUsers(); track user.id) {
+            <option [ngValue]="user.id">{{ user.name }}</option>
+          }
+        </select>
+      </div>
+    }
+  </div>
+
+  <!-- Report Viewer -->
+  <div class="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
+      @if (currentReport(); as report) {
+        <div class="space-y-4">
+            <div class="flex justify-end">
+                 <button (click)="downloadImage()" class="bg-slate-100/50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-bold py-2 px-4 rounded-lg flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" /><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" /></svg>
+                    Download Image
+                 </button>
+            </div>
+            <div class="aspect-video bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
+                <img [src]="report.imageDataUrl" alt="Performance Report" class="w-full h-full object-contain">
+            </div>
+            @if(report.notes) {
+                <div class="bg-slate-100/70 p-4 rounded-lg border border-slate-200">
+                    <h3 class="font-semibold text-slate-800 mb-2">Notes</h3>
+                    <p class="text-slate-600 whitespace-pre-wrap">{{report.notes}}</p>
+                </div>
+            }
+        </div>
+      } @else {
+        <div class="h-[50vh] flex items-center justify-center text-center text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200 p-8">
+          <div>
+            <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+            <h2 class="text-2xl font-bold text-slate-800 mt-4">No Report Found</h2>
+            <p class="mt-2 text-lg">
+                @if (!selectedWeek()) {
+                    Please select a week to view a report.
+                } @else if (isTeamView() && !selectedTeamUserId()) {
+                    Please select a team member to view their report.
+                } @else {
+                    No performance report has been published for this period. Only finalized reports are shown.
+                }
+            </p>
+          </div>
+        </div>
+      }
+  </div>
+</div>

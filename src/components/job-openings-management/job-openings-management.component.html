@@ -1,0 +1,133 @@
+<div class="animate-fade-in">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Manage Job Openings</h2>
+      <p class="text-slate-500 text-sm mt-1">Create, edit, and control the visibility of job postings on your website.</p>
+    </div>
+    <button (click)="openModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+      <span>Add Job Opening</span>
+    </button>
+  </div>
+  <div class="border border-slate-200 rounded-lg">
+    <div class="max-h-[60vh] overflow-y-auto">
+      <table class="w-full text-left">
+        <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+          <tr>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500">Title</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500">Date Posted</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-center">Status</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          @for (job of jobOpenings(); track job.id) {
+            <tr class="hover:bg-slate-50 group">
+              <td class="p-4 font-medium text-slate-800">{{ job.title }}</td>
+              <td class="p-4 text-slate-500">{{ job.datePosted | date:'mediumDate' }}</td>
+              <td class="p-4 text-center">
+                <span class="px-2 py-1 text-xs font-semibold rounded-full" [class.bg-green-100]="job.isActive" [class.text-green-800]="job.isActive" [class.bg-slate-200]="!job.isActive" [class.text-slate-600]="!job.isActive">
+                  {{ job.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="p-4 text-right">
+                <div class="flex justify-end gap-2">
+                  <button (click)="openPreviewModal(job)" class="bg-sky-100 text-sky-700 hover:bg-sky-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Preview</button>
+                  <button (click)="openModal(job)" class="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                  <button (click)="deleteJobOpening(job)" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Delete</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="text-center text-slate-500 py-16">
+                <h3 class="mt-4 text-xl font-semibold text-slate-800">No Job Openings Found</h3>
+                <p class="mt-1">Click 'Add Job Opening' to create the first one.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (showModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800 flex-shrink-0">{{ jobToEdit() ? 'Edit' : 'Create' }} Job Opening</h2>
+      <form [formGroup]="jobOpeningForm" (ngSubmit)="saveJobOpening()" class="flex flex-col flex-grow overflow-hidden">
+        <div class="space-y-4 overflow-y-auto pr-2 flex-grow">
+          <div>
+            <label for="job-title" class="block text-sm font-medium text-slate-700 mb-1.5">Job Title</label>
+            <input id="job-title" formControlName="title" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+          </div>
+          <div>
+            <label for="job-description" class="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+            <textarea id="job-description" formControlName="description" rows="5" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none"></textarea>
+          </div>
+          <div>
+            <label for="job-requirements" class="block text-sm font-medium text-slate-700 mb-1.5">Requirements</label>
+            <textarea id="job-requirements" formControlName="requirements" rows="5" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none" placeholder="Enter each requirement on a new line."></textarea>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1.5">Custom Application Questions</label>
+            <div formArrayName="customQuestions" class="space-y-2">
+              @for (question of customQuestions.controls; track $index) {
+                <div class="flex items-center gap-2">
+                  <input [formControlName]="$index" placeholder="e.g., What is your desired salary?" class="bg-slate-50 text-slate-800 p-2 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
+                  <button type="button" (click)="removeQuestion($index)" class="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-md flex-shrink-0" title="Remove question">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" (click)="addQuestion()" class="mt-2 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-lg flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+              Add Question
+            </button>
+          </div>
+          <div class="flex items-center gap-2 pt-4 border-t border-slate-200">
+            <input id="job-isActive" formControlName="isActive" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+            <label for="job-isActive" class="text-sm font-medium text-slate-700">Make this job opening active and visible on the website.</label>
+          </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8 flex-shrink-0">
+          <button type="button" (click)="closeModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="jobOpeningForm.invalid || isSaving()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isSaving() ? 'Saving...' : 'Save Job' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+@if (showDeleteConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Deletion"
+    [message]="'Are you sure you want to permanently delete the opening for ' + jobToDelete()?.title + '?'"
+    confirmText="Delete"
+    confirmStyle="danger"
+    (confirmed)="handleDelete($event)">
+  </app-confirmation-modal>
+}
+
+<!-- Preview Modal -->
+@if (showPreviewModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="closePreviewModal()">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl professional-shadow max-h-[90vh] flex flex-col relative" (click)="$event.stopPropagation()">
+       <button (click)="closePreviewModal()" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 z-20 p-1 rounded-full hover:bg-slate-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+       </button>
+       <div class="p-6 border-b border-slate-200 text-center flex-shrink-0">
+         <h2 class="text-3xl font-bold text-slate-900">Application Form Preview</h2>
+         <p class="mt-2 text-lg text-slate-600">This is how the form will look to applicants.</p>
+       </div>
+       <app-career-form 
+         [jobOpening]="jobToPreview()" 
+         [isPreview]="true">
+       </app-career-form>
+    </div>
+  </div>
+}

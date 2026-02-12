@@ -1,0 +1,135 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // --- Helper Functions ---
+    // All helper functions are now written to be safe for unauthenticated requests.
+    // They will return false instead of crashing if request.auth is null.
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function getUserRole(uid) {
+        return get(/databases/$(database)/documents/users/$(uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole(request.auth.uid) == 'admin';
+    }
+
+    function isSubAdmin() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole(request.auth.uid) == 'sub-admin';
+    }
+
+    function isSupervisor() {
+        return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole(request.auth.uid) == 'supervisor';
+    }
+
+    function isManager() {
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && getUserRole(request.auth.uid) in ['admin', 'sub-admin', 'supervisor'];
+    }
+
+    function isOwner(userId) {
+       return isAuth() &&
+              exists(/databases/$(database)/documents/users/$(userId)) &&
+              get(/databases/$(database)/documents/users/$(userId)).data.uid == request.auth.uid;
+    }
+    
+    function isAssignedToMe(employeeUserId) {
+      let employeeDoc = get(/databases/$(database)/documents/users/$(employeeUserId));
+      return isAuth() &&
+             'assignedTo' in employeeDoc.data &&
+             employeeDoc.data.assignedTo != null &&
+             exists(/databases/$(database)/documents/users/$(employeeDoc.data.assignedTo)) &&
+             get(/databases/$(database)/documents/users/$(employeeDoc.data.assignedTo)).data.uid == request.auth.uid;
+    }
+    
+    // --- Collection Rules ---
+
+    // Special rules for seeding initial data. This is WRITE-ONLY for the seeder.
+    // Read is only allowed for an admin to perform the initial account link.
+    match /users/initial_admin {
+      allow write: if request.auth == null || isAdmin();
+      allow read: if isAdmin();
+    }
+    
+    match /rateCategories/brightspeed {
+        allow write: if request.auth == null || isAdmin();
+        // No public read needed for seeding anymore
+    }
+    
+    match /settings/company_settings {
+      allow write: if request.auth == null || isAdmin();
+      // read is handled by the general /settings rule
+    }
+
+    // Default rules for collections that need public read access
+    match /settings/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /jobOpenings/{docId} {
+        allow read: if true;
+        allow create, update, delete: if isAdmin();
+    }
+    
+    match /careerApplications/{docId} {
+        allow create: if true; // Public can create
+        allow read, update, delete: if isAdmin();
+    }
+
+    // User-specific or role-based rules
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin() || isAssignedToMe(userId);
+      allow create: if isAdmin();
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+    
+    match /employeeReports/{reportId} {
+        allow read: if isOwner(resource.data.userId) || (isManager() && isAssignedToMe(resource.data.userId)) || isAdmin();
+        allow create, update, delete: if isAdmin();
+    }
+    
+    match /performanceReports/{reportId} {
+        allow read: if ((isOwner(resource.data.userId) || (isManager() && isAssignedToMe(resource.data.userId))) && resource.data.status == 'published') || isAdmin();
+        allow create, update, delete: if isAdmin();
+    }
+
+    match /chargebackReports/{reportId} {
+        allow read: if (isOwner(resource.data.userId) && resource.data.status == 'published') || isAdmin();
+        allow create, update, delete: if isAdmin();
+    }
+
+    match /subAdminSettings/{subAdminId} {
+        allow read, write: if isAdmin() || (isSubAdmin() && isOwner(subAdminId));
+    }
+    
+    match /rateCategories/{docId} {
+      allow read: if isManager();
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // Admin-only collections
+    match /jobs/{docId} { allow read, write: if isAdmin(); }
+    match /adjustments/{docId} { allow read, write: if isAdmin(); }
+    match /publishedPayrolls/{docId} { allow read, write: if isAdmin(); }
+    match /loans/{docId} { allow read, write: if isAdmin(); }
+    match /recurringAdjustments/{docId} { allow read, write: if isAdmin(); }
+    match /performanceDatasets/{docId} { allow read, write: if isAdmin(); }
+    match /qcFormTemplates/{docId} { allow read, write: if isAdmin(); }
+    
+    match /subAdminBatches/{batchId} {
+      allow read: if isAdmin() || (isSubAdmin() && isOwner(resource.data.subAdminId));
+      allow write: if isAdmin() || isSubAdmin();
+    }
+    
+    match /qcSubmissions/{subId} {
+      allow read, delete, update: if isManager();
+      allow create: if isAuth();
+    }
+  }
+}

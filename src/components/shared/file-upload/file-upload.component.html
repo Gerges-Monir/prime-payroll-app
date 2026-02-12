@@ -1,10 +1,17 @@
 <div>
   <div class="flex flex-col md:flex-row justify-between items-start mb-6">
-    <div>
-        <h2 class="text-xl font-semibold text-brand-text-primary">{{ title() }}</h2>
-        <p class="text-brand-text-secondary mt-1">{{ description() }}</p>
+    <div class="flex items-center gap-2">
+        <div>
+            <h2 class="text-xl font-semibold text-slate-800">{{ title() }}</h2>
+            <p class="text-slate-500 mt-1">{{ description() }}</p>
+        </div>
+        <button (click)="showFormatHelp.set(true)" type="button" class="text-slate-400 hover:text-blue-600" title="View expected file format">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+        </button>
     </div>
-    <button (click)="clearJobs()" class="bg-red-50 hover:bg-red-100 text-brand-danger font-semibold py-2 px-4 rounded-lg flex items-center gap-2 border border-red-200 mt-4 md:mt-0">
+    <button (click)="clearJobs()" class="bg-red-100 hover:bg-red-600 hover:text-white text-red-600 font-semibold py-2 px-4 rounded-lg flex items-center gap-2 border border-red-200 mt-4 md:mt-0">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
       <span>Clear All Jobs</span>
     </button>
@@ -12,16 +19,16 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
     <!-- Upload Area -->
     <div>
-      <div class="bg-slate-50 border-2 border-dashed border-brand-border rounded-lg p-8 text-center cursor-pointer hover:border-brand-primary transition-colors duration-300" (click)="fileInput.click()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
-        <h3 class="text-lg font-semibold text-brand-text-primary mt-4">Click to browse or drop file here</h3>
-        <p class="text-sm text-brand-text-secondary mt-1">Supports .xlsx files</p>
+      <div class="bg-slate-100/50 border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-600 transition-colors duration-300" (click)="fileInput.click()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z" /></svg>
+        <h3 class="text-lg font-semibold text-slate-800 mt-4">Click to browse or drop file here</h3>
+        <p class="text-sm text-slate-500 mt-1">Supports .xlsx files</p>
         <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx" class="hidden">
       </div>
       @if (selectedFile(); as file) {
-        <div class="mt-4 bg-slate-100 p-3 rounded-lg flex justify-between items-center border border-brand-border">
-          <span class="text-brand-text-primary text-sm">Selected: <span class="font-semibold">{{ file.name }}</span></span>
-          <button (click)="uploadFile()" [disabled]="uploadStatus() === 'uploading'" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-4 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed">
+        <div class="mt-4 bg-slate-100 p-3 rounded-lg flex justify-between items-center border border-slate-200">
+          <span class="text-slate-800 text-sm">Selected: <span class="font-semibold">{{ file.name }}</span></span>
+          <button (click)="uploadFile()" [disabled]="uploadStatus() === 'uploading'" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">
              {{ uploadStatus() === 'uploading' ? 'Uploading...' : 'Upload & Add Jobs' }}
           </button>
         </div>
@@ -30,36 +37,58 @@
 
     <!-- Status & Processed Data -->
     <div>
-      <h3 class="text-lg font-semibold mb-4 text-brand-text-primary">Processing Status</h3>
-      <div class="bg-slate-50 p-4 rounded-lg text-brand-text-secondary min-h-[80px] flex items-center border border-brand-border text-sm">
+      <h3 class="text-lg font-semibold mb-4 text-slate-800">Processing Status</h3>
+      <div class="bg-slate-100/50 p-4 rounded-lg text-slate-500 min-h-[80px] flex items-center border border-slate-200 text-sm">
         @if (uploadStatus() === 'idle') {
           <span>Ready for file upload. Processed data will appear below.</span>
         }
         @if (uploadStatus() === 'uploading') {
-          <div class="text-brand-text-primary flex items-center gap-2">
+          <div class="text-slate-800 flex items-center gap-2">
             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <span>{{ uploadMessage() }}</span>
           </div>
         }
         @if (uploadStatus() === 'success') {
-          <div class="text-green-700 flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg> {{ uploadMessage() }}</div>
+          <div class="text-green-600 flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" /></svg> {{ uploadMessage() }}</div>
         }
         @if (uploadStatus() === 'error') {
-          <div class="text-red-700 flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd" /></svg> {{ uploadMessage() }}</div>
+          <div class="text-red-600 flex items-start gap-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16ZM8.28 7.22a.75.75 0 0 0-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 1 0 1.06 1.06L10 11.06l1.72 1.72a.75.75 0 1 0 1.06-1.06L11.06 10l1.72-1.72a.75.75 0 0 0-1.06-1.06L10 8.94 8.28 7.22Z" clip-rule="evenodd" /></svg> {{ uploadMessage() }}</div>
         }
       </div>
+      
+      @if (uploadStatus() === 'success' && totalRevenueInFile() !== null) {
+        <div class="mt-4 p-4 border rounded-lg animate-fade-in" [class]="totalRevenueInFile() === totalRevenueAdded() ? 'border-green-200 bg-green-50' : 'border-amber-300 bg-amber-50'">
+          <h4 class="font-semibold text-slate-800">Revenue Summary</h4>
+          <div class="mt-2 space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-slate-500">Total Revenue in Uploaded File:</span>
+              <span class="font-mono font-semibold text-slate-800">{{ totalRevenueInFile() | currency }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500">Total Revenue from New Jobs Added:</span>
+              <span class="font-mono font-semibold text-slate-800">{{ totalRevenueAdded() | currency }}</span>
+            </div>
+            @if (totalRevenueInFile() !== totalRevenueAdded()) {
+              <div class="pt-2 mt-2 border-t border-amber-300 text-amber-800">
+                <p class="font-semibold">A discrepancy of {{ (totalRevenueInFile()! - totalRevenueAdded()!) | currency }} was found.</p>
+                <p>This is because {{ skippedJobsLog().length }} duplicate jobs were skipped and not added to the database. See the log below for details.</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
 
       <div class="mt-6">
-        <h3 class="text-lg font-semibold mb-4 text-brand-text-primary">Current Payroll Summary</h3>
+        <h3 class="text-lg font-semibold mb-4 text-slate-800">Current Payroll Summary</h3>
         <div class="space-y-3 max-h-96 overflow-y-auto pr-2">
           @for (tech of processedTechnicians(); track tech.id) {
             @if(tech.totalJobs > 0 || tech.adjustments.length > 0) {
-              <div class="bg-slate-50 p-4 rounded-lg hover:shadow-md transition-shadow border border-brand-border">
+              <div class="bg-slate-100/50 p-4 rounded-lg hover:shadow-md transition-shadow border border-slate-200">
                   <div class="flex justify-between items-center">
-                    <p class="font-bold text-lg text-brand-text-primary">{{ tech.name }} <span class="text-sm text-brand-text-secondary">#{{ tech.techId }}</span></p>
+                    <p class="font-bold text-lg text-slate-800">{{ tech.name }} <span class="text-sm text-slate-500">#{{ tech.techId }}</span></p>
                     <span class="text-green-600 font-semibold">{{ tech.totalEarnings | currency }}</span>
                   </div>
-                  <div class="text-sm text-brand-text-secondary grid grid-cols-2 md:grid-cols-4 gap-x-4 mt-2">
+                  <div class="text-sm text-slate-500 grid grid-cols-2 md:grid-cols-4 gap-x-4 mt-2">
                      <span>Jobs: {{ tech.totalJobs }}</span>
                      <span>Revenue: {{ tech.totalRevenue | currency }}</span>
                      <span>Avg/Job: {{ tech.avgPerJob | currency }}</span>
@@ -68,7 +97,7 @@
               </div>
             }
           } @empty {
-            <div class="text-center text-brand-text-secondary py-8">
+            <div class="text-center text-slate-500 py-8">
               <p>No jobs have been uploaded for the current period.</p>
             </div>
           }
@@ -77,3 +106,118 @@
     </div>
   </div>
 </div>
+
+@if (uploadWarnings().length > 0) {
+  <div class="mt-8 animate-fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-orange-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span>Upload Warnings ({{ uploadWarnings().length }})</span>
+      </h3>
+       <button (click)="uploadWarnings.set([])" class="text-sm text-slate-500 hover:text-slate-800">&times; Hide</button>
+    </div>
+    <div class="border border-orange-300 bg-orange-50 rounded-lg">
+      <div class="max-h-60 overflow-y-auto p-4 text-sm text-orange-800 space-y-2">
+        @for (warning of uploadWarnings(); track $index) {
+          <p class="border-b border-orange-200/50 pb-1 mb-1 last:border-b-0">{{$index + 1}}. {{ warning }}</p>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (skippedJobsLog().length > 0) {
+  <div class="mt-8 animate-fade-in">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-amber-800 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+        <span>Skipped Duplicate Jobs ({{ skippedJobsLog().length }})</span>
+      </h3>
+       <button (click)="skippedJobsLog.set([])" class="text-sm text-slate-500 hover:text-slate-800">&times; Hide</button>
+    </div>
+    <div class="border border-amber-300 bg-amber-50 rounded-lg">
+      <div class="max-h-96 overflow-y-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="sticky top-0 bg-amber-100 z-10 border-b border-amber-200">
+            <tr>
+              <th class="p-3 font-semibold text-amber-900">Work Order</th>
+              <th class="p-3 font-semibold text-amber-900">Task Code</th>
+              <th class="p-3 font-semibold text-amber-900">Tech ID</th>
+              <th class="p-3 font-semibold text-amber-900">Reason</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-amber-200">
+            @for (log of skippedJobsLog(); track $index) {
+              <tr class="hover:bg-amber-100/70">
+                <td class="p-3 text-amber-800">{{ log.job.workOrder }}</td>
+                <td class="p-3 text-amber-800">{{ log.job.taskCode }}</td>
+                <td class="p-3 text-amber-800">{{ log.job.techId }}</td>
+                <td class="p-3 text-amber-800">{{ log.reason }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showClearJobsConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Clear Jobs"
+    message="Are you sure you want to clear all current jobs and adjustments? This action cannot be undone."
+    confirmText="Clear All Data"
+    confirmStyle="danger"
+    (confirmed)="handleClearJobs($event)">
+  </app-confirmation-modal>
+}
+
+<!-- Format Help Modal -->
+@if (showFormatHelp()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="showFormatHelp.set(false)">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-2xl border border-slate-200" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-start">
+        <h2 class="text-xl font-bold mb-4 text-slate-800">Expected File Format (Standard)</h2>
+        <button (click)="showFormatHelp.set(false)" class="text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <p class="text-sm text-slate-600 mb-4">The parser expects an Excel file (.xlsx) with the following columns. The header names should be similar to the ones listed below.</p>
+      
+      <div class="border border-slate-200 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-100">
+            <tr>
+              <th class="p-3 font-semibold text-slate-600">Work Order</th>
+              <th class="p-3 font-semibold text-slate-600">Technician Name</th>
+              <th class="p-3 font-semibold text-slate-600">Task Code</th>
+              <th class="p-3 font-semibold text-slate-600 text-center">Qty</th>
+              <th class="p-3 font-semibold text-slate-600 text-right">Revenue <span class="font-normal text-slate-500">or</span> Revenue Per</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white">
+            <tr class="border-t border-slate-200">
+              <td class="p-3 font-mono text-slate-800">D072524-ABC-T123</td>
+              <td class="p-3 font-mono text-slate-800">John Doe</td>
+              <td class="p-3 font-mono text-slate-800">I&R</td>
+              <td class="p-3 font-mono text-slate-800 text-center">1</td>
+              <td class="p-3 font-mono text-slate-800 text-right">125.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 space-y-1">
+        <p><strong>Important Notes:</strong></p>
+        <ul class="list-disc list-inside pl-2">
+          <li>The parser automatically extracts the <strong>Date</strong> (MMDDYY) and <strong>Tech ID</strong> from the 'Work Order' column.</li>
+          <li>The format should be `D` followed by the date, then any other characters, and finally `T` followed by the Tech ID (e.g., `DMMDDYY-....-T123`).</li>
+          <li>'Technician Name' is optional but recommended for creating new users.</li>
+          <li>You can provide a total 'Revenue' column or a 'Revenue Per' column (which will be multiplied by 'Qty').</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+}

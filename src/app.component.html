@@ -1,26 +1,93 @@
-@if (isInitializing()) {
-  <div class="fixed inset-0 bg-brand-background flex flex-col items-center justify-center gap-4">
-    <svg class="animate-spin h-12 w-12 text-brand-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-    <p class="text-brand-text-secondary">Connecting to service...</p>
-  </div>
-} @else {
-  @if (currentUser(); as user) {
-    @switch (user.role) {
-      @case ('admin') {
-        <app-admin-dashboard />
+<div class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+  @if (isConfigured()) {
+    @if (connectionError(); as error) {
+      <div class="fixed inset-0 bg-slate-100 flex flex-col items-center justify-center p-8 text-center z-[200]">
+        <div class="max-w-3xl">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9-303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+            </svg>
+          </div>
+          <h1 class="mt-4 text-2xl font-bold text-red-800">Application Configuration Error</h1>
+          <p class="text-red-700 mt-2">{{ error }}</p>
+          <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h2 class="font-semibold text-red-800">How to Fix This</h2>
+            <div class="mt-2 text-sm text-left text-red-700 space-y-2">
+              This error almost always means the application cannot communicate with its database due to incorrect security rules.
+              <br>
+              <strong>If you are the administrator:</strong>
+              <ol class="list-decimal list-inside pl-4 space-y-1">
+                <li>Go to your Firebase project console.</li>
+                <li>Navigate to Firestore Database -> Rules.</li>
+                <li>Copy the contents of the `firestore.rules` file from the project source code.</li>
+                <li>Paste the rules into the editor in the Firebase console and click "Publish".</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @else if (isInitializing()) {
+      <div class="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center gap-4">
+        <svg class="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="text-slate-500">Connecting to service...</p>
+      </div>
+    } @else {
+      @if (currentUser(); as user) {
+        @switch (user.role) {
+          @case ('admin') {
+            <app-admin-dashboard />
+          }
+          @case ('sub-admin') {
+            <app-sub-admin-dashboard />
+          }
+          @case ('employee') {
+            <app-employee-dashboard />
+          }
+          @case ('supervisor') {
+            <app-supervisor-dashboard />
+          }
+        }
+      } @else {
+        @if (showLogin()) {
+          <app-login (showLanding)="showLogin.set(false)" />
+        } @else {
+          <app-landing (loginClicked)="showLogin.set(true)" />
+        }
       }
-      @case ('sub-admin') {
-        <app-sub-admin-dashboard />
-      }
-      @case ('employee') {
-        <app-employee-dashboard />
-      }
+      <app-notification></app-notification>
     }
   } @else {
-    <app-login />
+    <div class="fixed inset-0 bg-slate-100 flex flex-col items-center justify-center p-8 text-center z-[200]">
+      <div class="max-w-3xl">
+        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <svg class="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+          </svg>
+        </div>
+        <h1 class="mt-4 text-2xl font-bold text-red-800">Application Not Configured</h1>
+        
+        @if (firebaseError(); as error) {
+          <p class="text-red-700 mt-2 whitespace-pre-wrap">{{ error }}</p>
+        } @else {
+          <p class="text-red-700 mt-2">The application cannot connect to backend services because a critical configuration variable is missing.</p>
+          <div class="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <h2 class="font-semibold text-red-800">For Administrators</h2>
+            <div class="mt-2 text-sm text-left text-red-700 space-y-2">
+              This error means the <strong>Firebase API Key</strong> has not been set in the deployment environment.
+              <ol class="list-decimal list-inside pl-4 space-y-1">
+                <li>Go to your deployment platform's settings (e.g., Vercel, Netlify, Google Cloud).</li>
+                <li>Find the section for "Environment Variables".</li>
+                <li>Add a new variable named <strong>API_KEY</strong>.</li>
+                <li>Paste your Firebase Web API Key as the value.</li>
+                <li>Redeploy the application for the change to take effect.</li>
+              </ol>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
   }
-  <app-notification></app-notification>
-}
+</div>

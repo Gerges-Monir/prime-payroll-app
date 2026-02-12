@@ -1,0 +1,63 @@
+/* Initial Animation States */
+#success-cable-line {
+    stroke-dasharray: 85;
+    stroke-dashoffset: 85;
+}
+#success-cable-plug {
+    transform: translateX(0);
+}
+#success-wifi-symbol {
+    opacity: 0;
+}
+#success-wifi-1, #success-wifi-2, #success-wifi-3 {
+    stroke-dashoffset: 32; /* A safe large value */
+}
+#success-wifi-1 { stroke-dasharray: 10; }
+#success-wifi-2 { stroke-dasharray: 20; }
+#success-wifi-3 { stroke-dasharray: 32; }
+
+
+/* Applying the animations on success */
+#success-cable-line {
+    animation: draw-cable-once 1s ease-out forwards;
+}
+#success-cable-plug {
+    animation: plug-in-once 0.5s cubic-bezier(0.76, 0, 0.24, 1) 0.8s forwards;
+}
+#success-status-light {
+    animation: light-on-once 0.2s steps(1, end) 1.5s forwards;
+}
+#success-wifi-symbol {
+    animation: wifi-show-once 0.3s ease-in 1.5s forwards;
+}
+#success-wifi-1 {
+    animation: fill-wifi-once 0.4s ease-out 1.8s forwards;
+}
+#success-wifi-2 {
+    animation: fill-wifi-once 0.4s ease-out 2.0s forwards;
+}
+#success-wifi-3 {
+    animation: fill-wifi-once 0.4s ease-out 2.2s forwards;
+}
+
+/* Keyframes for the one-time success animation */
+
+@keyframes draw-cable-once {
+    to { stroke-dashoffset: 0; }
+}
+
+@keyframes plug-in-once {
+    to { transform: translateX(30px); }
+}
+
+@keyframes light-on-once {
+    to { fill: #4ade80; }
+}
+
+@keyframes wifi-show-once {
+    to { opacity: 1; }
+}
+
+@keyframes fill-wifi-once {
+    to { stroke-dashoffset: 0; }
+}

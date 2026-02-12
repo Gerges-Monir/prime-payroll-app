@@ -1,0 +1,112 @@
+<div class="animate-fade-in">
+  <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-800">Career Applications</h2>
+      <p class="text-slate-500 text-sm mt-1">Review submissions from the career application form on your website.</p>
+    </div>
+    <div class="w-full sm:w-1/2 md:w-1/3">
+        <input 
+            type="text" 
+            placeholder="Search by name, email, or position..."
+            (input)="onFilter($event)"
+            class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-200 focus:ring-2 focus:ring-blue-500/50 outline-none">
+    </div>
+  </div>
+  <div class="border border-slate-200 rounded-lg">
+    <div class="max-h-[70vh] overflow-y-auto">
+      <table class="w-full text-left">
+        <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
+          <tr>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="toggleSort('name')">
+              Applicant <span class="text-xs">{{ sortField() === 'name' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider">
+              Position
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider cursor-pointer" (click)="toggleSort('submissionDate')">
+              Date <span class="text-xs">{{ sortField() === 'submissionDate' ? (sortDirection() === 'asc' ? '▲' : '▼') : '' }}</span>
+            </th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+          @for (app of filteredAndSortedApplications(); track app.id) {
+            <tr class="hover:bg-slate-50 group">
+              <td class="p-4">
+                <p class="font-medium text-slate-800">{{ app.name }}</p>
+                <a [href]="'mailto:' + app.email" class="text-sm text-blue-600 hover:text-sky-600">{{ app.email }}</a>
+              </td>
+              <td class="p-4 text-slate-800">{{ app.position }}</td>
+              <td class="p-4 text-slate-500">{{ app.submissionDate | date:'medium' }}</td>
+              <td class="p-4 text-right">
+                <div class="flex justify-end gap-2">
+                  <button (click)="toggleDetails(app.id)" class="bg-blue-100 text-blue-800 hover:bg-blue-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">
+                      {{ expandedApplicationId() === app.id ? 'Hide' : 'View' }} Details
+                  </button>
+                  <button (click)="deleteApplication(app)" class="bg-red-100 text-red-600 hover:bg-red-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">
+                      Delete
+                  </button>
+                </div>
+              </td>
+            </tr>
+            @if (expandedApplicationId() === app.id) {
+                <tr class="bg-blue-100/60">
+                    <td colspan="4" class="p-4 animate-fade-in-fast">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                            <div class="col-span-1 md:col-span-2"><p><span class="font-semibold text-slate-500">Phone:</span> {{ app.phone }}</p></div>
+                            <div><p><span class="font-semibold text-slate-500">Valid Driver's License:</span> {{ app.hasDriversLicense ? 'Yes' : 'No' }}</p></div>
+                            <div><p><span class="font-semibold text-slate-500">Willing to Travel:</span> {{ app.willingToTravel ? 'Yes' : 'No' }}</p></div>
+                            <div><p><span class="font-semibold text-slate-500">Fluent in English:</span> {{ app.isFluentInEnglish ? 'Yes' : 'No' }}</p></div>
+                            @if (app.resume) {
+                                <div>
+                                    <span class="font-semibold text-slate-500">Uploaded Resume:</span> 
+                                    <a [href]="app.resume.dataUrl" [download]="app.resume.fileName" class="text-blue-600 hover:underline ml-1">{{ app.resume.fileName }}</a>
+                                </div>
+                            }
+                            @if (app.resumeLink) {
+                                <div class="col-span-1 md:col-span-2"><p><span class="font-semibold text-slate-500">Resume Link:</span> <a [href]="app.resumeLink" target="_blank" class="text-blue-600 hover:underline">{{ app.resumeLink }}</a></p></div>
+                            }
+
+                             @if (app.customAnswers && app.customAnswers.length > 0) {
+                                <div class="col-span-1 md:col-span-2 pt-4 mt-4 border-t border-slate-300">
+                                    <h4 class="font-semibold text-slate-500 mb-2">Applicant's Answers</h4>
+                                    <div class="space-y-4">
+                                        @for (qa of app.customAnswers; track qa.question) {
+                                            <div>
+                                                <p class="font-semibold text-slate-700">{{ qa.question }}</p>
+                                                <p class="whitespace-pre-wrap bg-white p-2 border border-slate-200 rounded mt-1">{{ qa.answer || 'N/A' }}</p>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+          } @empty {
+            <tr>
+              <td colspan="4" class="text-center text-slate-500 py-16">
+                <div class="text-5xl text-sky-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12.75h.008v.008H9v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-2.25-4.125a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.008v.008H6.875v-.008Zm2.625 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.008v.008H9.5v-.008Zm2.625 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.008v.008h-.008v-.008Zm-2.625-4.125a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.008v.008H9.5v-.008Zm2.625 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h.008v.008h-.008v-.008Z M4.5 21V5.25A2.25 2.25 0 0 1 6.75 3h10.5a2.25 2.25 0 0 1 2.25 2.25v15.75m0 0A2.25 2.25 0 0 1 17.25 21H6.75a2.25 2.25 0 0 1-2.25-2.25m0 0h.008v.008H4.5v-.008Z" /></svg>
+                </div>
+                <h3 class="mt-4 text-xl font-semibold text-slate-800">No Applications Found</h3>
+                <p class="mt-1">No applications match your search, or none have been submitted yet.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+@if (showDeleteConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Application Deletion"
+    [message]="'Are you sure you want to permanently delete the application from ' + applicationToDelete()?.name + '? This action cannot be undone.'"
+    confirmText="Delete Application"
+    confirmStyle="danger"
+    (confirmed)="handleDelete($event)">
+  </app-confirmation-modal>
+}

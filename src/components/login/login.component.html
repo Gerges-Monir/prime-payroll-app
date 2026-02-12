@@ -1,50 +1,103 @@
-<div class="min-h-screen bg-brand-background flex flex-col justify-center items-center p-4 font-sans animate-fade-in">
-  <div class="w-full max-w-sm mx-auto">
-    <!-- Branding -->
-    <div class="text-center mb-8">
-      <img [src]="logo()" alt="Prime Communication Logo" class="w-64 mx-auto" />
-    </div>
+<div class="login-page-bg">
     
-    <!-- Form -->
-    <div class="bg-brand-surface p-8 border border-brand-border rounded-2xl shadow-sm w-full">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <div>
-          <label for="username" class="block text-sm font-medium text-brand-text-secondary mb-2">Username</label>
-          <input 
-            id="username"
-            formControlName="username"
-            type="text" 
-            class="w-full py-3 px-4 bg-brand-input-bg border border-brand-border rounded-lg text-brand-text-primary placeholder:text-gray-400 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-colors"
-            placeholder="Enter your username">
+    <a (click)="showLanding.emit()" class="absolute top-6 left-6 text-white/80 hover:text-white font-semibold flex items-center gap-2 cursor-pointer group z-20">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5 transition-transform group-hover:-translate-x-1">
+            <path fill-rule="evenodd" d="M17 10a.75.75 0 0 1-.75.75H5.612l4.158 3.96a.75.75 0 1 1-1.04 1.08l-5.5-5.25a.75.75 0 0 1 0-1.08l5.5-5.25a.75.75 0 1 1 1.04 1.08L5.612 9.25H16.25A.75.75 0 0 1 17 10Z" clip-rule="evenodd" />
+        </svg>
+        Back to Home
+    </a>
+    <div class="login-container">
+        <div class="logo-container cursor-pointer" (click)="showLanding.emit()" title="Back to Home">
+            <img [src]="logo()" alt="Prime Communication" class="logo">
         </div>
-        <div>
-          <label for="password" class="block text-sm font-medium text-brand-text-secondary mb-2">Password</label>
-          <input 
-            id="password"
-            formControlName="password"
-            type="password"
-            class="w-full py-3 px-4 bg-brand-input-bg border border-brand-border rounded-lg text-brand-text-primary placeholder:text-gray-400 focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary outline-none transition-colors"
-            placeholder="••••••••">
-        </div>
-        
-        @if (loginError(); as error) {
-          <div class="bg-red-50 border-l-4 border-red-400 text-red-700 p-3 text-sm rounded">
-            <p>{{ error }}</p>
-          </div>
-        }
 
-        <button 
-          type="submit" 
-          [disabled]="loginForm.invalid || isLoading()"
-          class="w-full bg-brand-primary hover:bg-brand-primary-hover text-brand-text-on-primary font-semibold py-3 rounded-lg transition-colors duration-200 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center">
-          @if (isLoading()) {
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <span>Signing In...</span>
-          } @else {
-             <span>Sign in</span>
-          }
-        </button>
-      </form>
+        @if (view() === 'login') {
+            <div class="animate-fade-in">
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Sign in to continue to your dashboard</p>
+
+                <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="email" formControlName="email" placeholder="Enter your email address" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="password" formControlName="password" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <div class="forgot-password">
+                        <a (click)="view.set('forgotPassword')" class="cursor-pointer">Forgot password?</a>
+                    </div>
+
+                    @if (loginError(); as error) {
+                      <div class="login-error">
+                        <p>{{ error }}</p>
+                      </div>
+                    }
+
+                    <button type="submit" class="sign-in-btn" [disabled]="loginForm.invalid || isLoading()">
+                        <span>
+                            @if (isLoading()) {
+                                Signing In...
+                            } @else {
+                                Sign In
+                            }
+                        </span>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>or</span>
+                </div>
+
+                <div class="signup-link">
+                    Need an account? <a [href]="'mailto:' + companyEmail() + '?subject=Request%20for%20New%20User%20Account'">Contact your supervisor</a>
+                </div>
+            </div>
+        } @else {
+            <div class="animate-fade-in">
+                <h2>Reset Password</h2>
+                <p class="subtitle">Enter your email to receive a password reset link.</p>
+                
+                <form [formGroup]="forgotPasswordForm" (ngSubmit)="onForgotPasswordSubmit()">
+                    <div class="form-group">
+                        <label for="reset-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="reset-email" formControlName="email" placeholder="Enter your registered email" required>
+                        </div>
+                    </div>
+                    
+                    @if (resetMessage()) {
+                        <div class="reset-message" [class.success]="resetSuccess()" [class.error]="!resetSuccess()">
+                            <p>{{ resetMessage() }}</p>
+                        </div>
+                    }
+
+                    <button type="submit" class="sign-in-btn" [disabled]="forgotPasswordForm.invalid || isSendingReset()">
+                        <span>
+                            @if (isSendingReset()) {
+                                Sending Link...
+                            } @else {
+                                Send Reset Link
+                            }
+                        </span>
+                    </button>
+                </form>
+
+                <div class="divider">
+                    <span>or</span>
+                </div>
+
+                <div class="signup-link">
+                    Remember your password? <a (click)="switchToLogin()" class="cursor-pointer">Sign In</a>
+                </div>
+            </div>
+        }
     </div>
-  </div>
 </div>

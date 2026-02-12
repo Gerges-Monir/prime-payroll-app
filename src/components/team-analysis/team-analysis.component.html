@@ -1,0 +1,213 @@
+<div class="animate-fade-in space-y-8">
+  <div>
+    <h2 class="text-xl font-semibold text-slate-800">Performance Datasets &amp; Analysis</h2>
+    <p class="text-slate-500">
+      Upload and manage master performance datasets. Select a dataset to view a team-wide heatmap analysis.
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left Panel: Datasets -->
+    <div class="lg:col-span-3">
+      <div class="flex items-center gap-2 mb-4">
+        <h3 class="text-lg font-semibold text-slate-800">Manage Datasets</h3>
+        <button (click)="showFormatHelp.set(true)" type="button" class="text-slate-400 hover:text-blue-600" title="View expected file format">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+        </button>
+      </div>
+        <div class="flex items-center gap-2 mb-4">
+            <input type="date" [(ngModel)]="newDatasetDate" class="w-full bg-slate-50 text-slate-800 p-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none text-sm"/>
+            <label class="w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-3 rounded-lg cursor-pointer flex items-center justify-center gap-2 shadow-sm flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
+                <span>Upload</span>
+                <input type="file" (change)="onFileSelected($event)" accept=".xlsx, .xls" class="hidden">
+            </label>
+        </div>
+        <div class="bg-slate-100/50 p-2 rounded-lg max-h-[60vh] overflow-y-auto border border-slate-200 shadow-inner">
+            <div class="space-y-2">
+                @for (dataset of datasets(); track dataset.id) {
+                    <div class="relative group">
+                        <button (click)="selectedDatasetId.set(dataset.id)" 
+                                [class]="selectedDatasetId() === dataset.id ? 'bg-blue-600 text-white shadow-md' : 'bg-white hover:bg-slate-100'"
+                                class="w-full text-left p-3 rounded-lg border border-slate-200 transition-all">
+                            <p class="font-semibold truncate">{{ dataset.fileName }}</p>
+                            <p class="text-sm opacity-70">{{ dataset.uploadDate | date:'short' }}</p>
+                        </button>
+                        <button (click)="deleteDataset(dataset)" class="absolute top-2 right-2 p-1 bg-black/10 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500">
+                           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                } @empty {
+                    <div class="p-4 text-center text-slate-500">No datasets uploaded yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Heatmap -->
+    <div class="lg:col-span-9">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-slate-800">Team Performance Heatmap</h3>
+        <button (click)="downloadHeatmap()" [disabled]="!heatmapData()" class="bg-blue-100 text-blue-700 hover:bg-blue-200 font-bold py-2 px-3 rounded-md text-sm transition-colors flex items-center gap-1 disabled:bg-slate-200 disabled:text-slate-500 disabled:cursor-not-allowed">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" /><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" /></svg>
+          Download
+        </button>
+      </div>
+        @if (isProcessing()) {
+            <div class="text-center py-20 text-slate-500 bg-slate-100/70 rounded-lg border-2 border-dashed border-slate-200">
+              <p>Processing Dataset...</p>
+            </div>
+        } @else if (heatmapData(); as heatmap) {
+            <div #heatmapContainer class="border border-slate-200 rounded-lg max-h-[70vh] overflow-auto shadow-md">
+                <table class="w-full text-xs text-left border-collapse">
+                    <thead class="sticky top-0 bg-slate-100 z-10">
+                        <tr>
+                            <th class="p-2 font-semibold uppercase text-slate-500 tracking-wider w-48 sticky left-0 bg-slate-100 z-20">Technician</th>
+                            @for(metric of heatmap.metrics; track metric.key) {
+                                <th class="p-2 font-semibold uppercase text-slate-500 tracking-wider text-center w-24 whitespace-normal" [title]="metric.key">{{ metric.shortName }}</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white">
+                        @for (tech of heatmap.techs; track tech.techId) {
+                            <tr class="border-b border-slate-200 hover:bg-slate-50 group">
+                                <td class="p-2 font-semibold text-slate-800 sticky left-0 bg-white group-hover:bg-slate-50 z-10">{{ tech.name }}</td>
+                                @for (metric of heatmap.metrics; track metric.key) {
+                                    @let metricData = getMetricData(tech.perfData.detailed, metric.key);
+                                    @let value = metricData?.value.actual;
+                                    <td class="p-2 text-center font-mono font-semibold" [class]="getMetricColor(metricData?.value.points, metricData?.value.max)" [title]="metricData ? (metricData.value.points + '/' + metricData.value.max + ' pts') : 'N/A'">
+                                        @if(value != null) {
+                                            {{ metric.key.includes('%') ? (value * 100).toFixed(1) + '%' : value.toFixed(1) }}
+                                        } @else {
+                                            -
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        } @else {
+            <div class="h-full bg-slate-100/50 p-4 rounded-lg border-2 border-dashed border-slate-200 flex items-center justify-center text-center">
+                <p class="text-slate-500">Select a dataset to view the team performance heatmap.</p>
+            </div>
+        }
+    </div>
+  </div>
+</div>
+
+@if (showDeleteDatasetConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Dataset Deletion"
+    [message]="'Are you sure you want to permanently delete the dataset \'' + datasetToDelete()?.fileName + '\'? This action cannot be undone.'"
+    confirmText="Delete Dataset"
+    confirmStyle="danger"
+    (confirmed)="handleDatasetDelete($event)">
+  </app-confirmation-modal>
+}
+
+<!-- Verification Modal -->
+@if (showVerificationModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-2xl border border-slate-200 max-h-[90vh] flex flex-col">
+      <h2 class="text-2xl font-bold mb-2 text-slate-800 flex-shrink-0">Verify Company Metrics</h2>
+      <p class="text-sm text-slate-500 mb-6 flex-shrink-0">Review the parsed company-wide metrics. You can manually correct any values before saving the dataset.</p>
+      
+      <form [formGroup]="verificationForm" (ngSubmit)="confirmVerification()" class="flex flex-col flex-grow overflow-hidden">
+        <div class="space-y-4 overflow-y-auto pr-2 flex-grow">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            @for (metricKey of verificationFormMetrics(); track metricKey) {
+              <div>
+                <label [for]="metricKey" class="block text-sm font-medium text-slate-700 mb-1.5">{{ metricKey }}</label>
+                <div class="relative">
+                  <input [id]="metricKey" [formControlName]="metricKey" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none pr-10">
+                  @if (metricKey.includes('%')) {
+                    <span class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm text-slate-500">%</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="flex justify-end gap-4 mt-8 flex-shrink-0">
+          <button type="button" (click)="cancelVerification()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="verificationForm.invalid || isUploading()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm disabled:bg-slate-300 disabled:cursor-not-allowed">
+            {{ isUploading() ? 'Saving...' : 'Confirm & Save' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Format Help Modal -->
+@if (showFormatHelp()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="showFormatHelp.set(false)">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-3xl border border-slate-200 max-h-[90vh] flex flex-col" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-start flex-shrink-0">
+        <h2 class="text-xl font-bold mb-4 text-slate-800">Expected Performance Dataset Format</h2>
+        <button (click)="showFormatHelp.set(false)" class="text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <div class="flex-grow overflow-y-auto pr-4">
+        <p class="text-sm text-slate-600 mb-4">The file parser is flexible and tries to find columns based on common names. The first sheet should contain technician data, and the second sheet (optional) should contain company-wide averages.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <h3 class="font-semibold text-slate-700 mb-2">Core Columns (Required)</h3>
+                <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                    <li><strong>Tech #:</strong> Unique identifier for the technician.</li>
+                    <li><strong>Name:</strong> Full name of the technician.</li>
+                    <li>At least one metric column (e.g., 'Positive Completion %', 'Jobs').</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-slate-700 mb-2">Optional Info Columns</h3>
+                <ul class="list-disc list-inside space-y-1 text-sm text-slate-600">
+                    <li>Vendor, Market, Region</li>
+                    <li>Tier, RANK, TOTAL RATING</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="font-semibold text-slate-700 mt-6 mb-2">Recognized Metric Columns</h3>
+        <p class="text-sm text-slate-600 mb-4">Provide either the percentage columns directly, or the raw data columns for the system to calculate the percentages.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+            <div>
+                <h4 class="font-medium text-slate-600 border-b mb-2 pb-1">Percentage-Based Metrics</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Positive Completion %</li>
+                    <li>7 Day Repeats IN/COS %</li>
+                    <li>7 Day Repeats TC %</li>
+                    <li>30 Day IN/COS Repeat %</li>
+                    <li>30 Day TC Repeat %</li>
+                    <li>On Time %</li>
+                    <li>TS %</li>
+                    <li>NPS %</li>
+                    <li>SMS Text Compliance %</li>
+                    <li>OSAT (as a score, not a percent)</li>
+                </ul>
+            </div>
+             <div>
+                <h4 class="font-medium text-slate-600 border-b mb-2 pb-1">Raw Data for Calculation</h4>
+                <ul class="list-disc list-inside space-y-1">
+                    <li>Jobs, Closed</li>
+                    <li>7 Day IN/COS Repeats, 7 Day IN/COS TR's</li>
+                    <li>7 Day TC Repeats, 7 Day TC TR's</li>
+                    <li>30 Day IN/COS Repeats, 30 Day IN/COS Truck Rolls</li>
+                    <li>30 Day TC Repeats, 30 Day TC Truck Rolls</li>
+                    <li>On Time Jobs, On Time TR's</li>
+                    <li>NPS Promoters, NPS Detractors, NPS Surveys</li>
+                    <li>OSAT Sum, OSAT Count</li>
+                    <li>Techspeed Numerator, Techspeed Denominator</li>
+                    <li>SMS Compliant, SMS Total</li>
+                </ul>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,17 +1,32 @@
 import { Component, ChangeDetectionStrategy, inject, computed, signal, WritableSignal } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { DatabaseService } from '../../services/database.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { DashboardHeaderComponent } from '../shared/dashboard-header/dashboard-header.component';
 import { StatCardsComponent } from '../shared/stat-cards/stat-cards.component';
 import { SidebarComponent } from '../shared/sidebar/sidebar.component';
-import { User, Job, ProcessedTechnician, PublishedPayroll, RateCategory } from '../../models/payroll.model';
+import { User, Job, ProcessedTechnician, RateCategory, SubAdminPayrollBatch, StatCard, Rate } from '../../models/payroll.model';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
+import { TeamPaystubViewerComponent } from '../team-paystub-viewer/team-paystub-viewer.component';
+import { PerformanceViewerComponent } from '../performance-viewer/performance-viewer.component';
+import { CompanyPaystubViewerComponent } from '../company-paystub-viewer/company-paystub-viewer.component';
+import { ChargebackHistoryComponent } from '../chargeback-history/chargeback-history.component';
+import { SubAdminSettingsComponent } from '../sub-admin-settings/sub-admin-settings.component';
+import { TaxFormsComponent } from '../tax-forms/tax-forms.component';
 
-declare var XLSX: any;
+type SubAdminTab = 'dashboard' | 'manageBatch' | 'manageRates' | 'finalizedBatches' | 'teamPaystubs' | 'companyReport' | 'teamPerformance' | 'chargebackHistory' | 'settings' | '1099-forms';
+type SortableField = 'techName' | 'workOrder' | 'date' | 'taskCode' | 'revenue';
 
-type SubAdminTab = 'report' | 'jobs' | 'team' | 'teamHistory';
+type JobWithTechName = Job & { techName: string };
+
+interface RateOverrideInfo {
+  taskCode: string;
+  companyRate: number;
+  currentOverride: number | undefined;
+  newOverride: WritableSignal<string>;
+}
 
 @Component({
   selector: 'app-sub-admin-dashboard',
@@ -20,11 +35,18 @@ type SubAdminTab = 'report' | 'jobs' | 'team' | 'teamHistory';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     SidebarComponent,
     DashboardHeaderComponent,
     StatCardsComponent,
+    ConfirmationModalComponent,
+    TeamPaystubViewerComponent,
+    PerformanceViewerComponent,
+    CompanyPaystubViewerComponent,
+    ChargebackHistoryComponent,
+    SubAdminSettingsComponent,
+    TaxFormsComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubAdminDashboardComponent {
   private dataService = inject(DatabaseService);
@@ -32,110 +54,266 @@ export class SubAdminDashboardComponent {
   private notificationService = inject(NotificationService);
   private fb: FormBuilder;
 
-  currentUser = this.authService.currentUser;
-  activeTab = signal<SubAdminTab>('report');
+  currentUser = computed(() => {
+    const authUser = this.authService.currentUser();
+    if (!authUser) return null;
+    // Find the user from the live collection, fall back to the authUser if not found yet.
+    return this.dataService.users().find(u => u.id === authUser.id) ?? authUser;
+  });
+  activeTab = signal<SubAdminTab>('dashboard');
   
   tabs: { id: SubAdminTab, name: string, icon: string }[] = [
-    { id: 'report', name: 'Current Payroll', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z" /><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z" />' },
-    { id: 'jobs', name: 'Unprocessed Jobs', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 7.5h1.5m-1.5 3h1.5m-7.5 3h7.5m-7.5 3h7.5m3-9h3.375c.621 0 1.125.504 1.125 1.125V18a2.25 2.25 0 0 1-2.25 2.25M16.5 7.5V18a2.25 2.25 0 0 0 2.25 2.25M16.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125H4.125C3.504 3.75 3 4.254 3 4.875V18a2.25 2.25 0 0 0 2.25 2.25h13.5M6 7.5h3v3H6v-3Z" />' },
-    { id: 'team', name: 'My Team', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-4.663M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z" />' },
-    { id: 'teamHistory', name: 'Payroll History', icon: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />' }
+    { id: 'dashboard', name: 'Dashboard', icon: 'dashboard' },
+    { id: 'manageBatch', name: 'Current Payroll Batch', icon: 'jobs' },
+    { id: 'manageRates', name: 'Manage Team Payouts', icon: 'rates' },
+    { id: 'finalizedBatches', name: 'Finalized Batches', icon: 'history' },
+    { id: 'teamPaystubs', name: 'Team Paystubs', icon: 'paystubs' },
+    { id: 'companyReport', name: 'Company Report', icon: 'company' },
+    { id: 'teamPerformance', name: 'Team Performance', icon: 'performance' },
+    { id: '1099-forms', name: '1099 Forms', icon: 'tax' },
+    { id: 'chargebackHistory', name: 'Chargeback History', icon: 'chargebacks' },
+    { id: 'settings', name: 'Branding & Settings', icon: 'settings' },
   ];
-
-  rateCategories = this.dataService.rateCategories;
-
-  assignedEmployeeIds = computed(() => {
-    const currentUserId = this.currentUser()?.id;
-    if (!currentUserId) return new Set<number>();
-    const ids = this.dataService.users().filter(u => u.assignedTo === currentUserId).map(u => u.id);
-    return new Set(ids);
-  });
+  
+  // Filter and Sort State
+  filterTerm = signal('');
+  selectedTechIdFilter = signal<string>('all');
+  startDate = signal<string | null>(null);
+  endDate = signal<string | null>(null);
+  sortField = signal<SortableField>('date');
+  sortDirection = signal<'asc' | 'desc'>('desc');
   
   teamMembers = computed(() => {
-    const ids = this.assignedEmployeeIds();
-    return this.dataService.users().filter(u => ids.has(u.id));
+    const currentUser = this.currentUser();
+    if (!currentUser) return [];
+    const team = this.dataService.users().filter(u => u.assignedTo === currentUser.id);
+    // Add self to the list to view own performance
+    return [currentUser, ...team].sort((a, b) => a.name.localeCompare(b.name));
   });
 
   teamTechIds = computed(() => new Set(this.teamMembers().map(u => u.techId)));
 
-  teamJobs = computed(() => {
-    const techIds = this.teamTechIds();
-    return this.dataService.jobs().filter(job => techIds.has(job.techId));
+  activeBatch = computed(() => {
+    const subAdminId = this.currentUser()?.id;
+    if (!subAdminId) return null;
+    return this.dataService.subAdminBatches().find(b => b.subAdminId === subAdminId && b.status === 'pending') ?? null;
   });
 
-  teamProcessedTechnicians = computed(() => {
-    const techIds = this.teamTechIds();
-    techIds.add(this.currentUser()?.techId || '');
-    return this.dataService.processedTechnicians().filter(p => techIds.has(p.techId));
+  userMap = computed(() => new Map(this.dataService.users().map(u => [u.techId, u])));
+
+  subAdminRateCategory = computed(() => {
+    const subAdmin = this.currentUser();
+    if (!subAdmin?.rateCategoryId) return null;
+    return this.dataService.rateCategories().find(rc => rc.id === subAdmin.rateCategoryId) ?? null;
   });
 
-  teamStats = computed(() => {
-    const techs = this.teamProcessedTechnicians();
+  jobsWithSubAdminRevenue = computed(() => {
+    const batch = this.activeBatch();
+    if (!batch) return [];
+
+    const rateCategory = this.subAdminRateCategory();
+    const companyRates = rateCategory ? new Map<string, number>(rateCategory.rates.map(r => [r.taskCode, r.rate])) : new Map<string, number>();
+
+    return (batch.jobs || []).map(job => {
+        const companyRateForJob = companyRates.get(job.taskCode) ?? 0;
+        const subAdminRevenue = companyRateForJob * job.quantity;
+        return { ...job, revenue: subAdminRevenue };
+    });
+  });
+
+  filteredAndSortedJobs = computed(() => {
+    const batch = this.activeBatch();
+    if (!batch) return [];
+    
+    const term = this.filterTerm().toLowerCase();
+    const techIdFilter = this.selectedTechIdFilter();
+    const start = this.startDate();
+    const end = this.endDate();
+    const field = this.sortField();
+    const dir = this.sortDirection();
+    const uMap = this.userMap();
+    
+    let jobs: JobWithTechName[] = this.jobsWithSubAdminRevenue().map(j => ({...j, techName: uMap.get(j.techId)?.name || 'Unknown' }));
+
+    if (term) jobs = jobs.filter(j => j.techName.toLowerCase().includes(term) || j.workOrder.toLowerCase().includes(term) || j.taskCode.toLowerCase().includes(term));
+    if (techIdFilter !== 'all') jobs = jobs.filter(j => j.techId === techIdFilter);
+    if (start) jobs = jobs.filter(j => j.date >= start);
+    if (end) jobs = jobs.filter(j => j.date <= end);
+    
+    return jobs.sort((a, b) => {
+      let comparison = 0;
+      switch (field) {
+        case 'revenue':
+          comparison = a.revenue - b.revenue;
+          break;
+        case 'techName':
+          comparison = a.techName.localeCompare(b.techName);
+          break;
+        case 'workOrder':
+          comparison = a.workOrder.localeCompare(b.workOrder);
+          break;
+        case 'date':
+          comparison = a.date.localeCompare(b.date);
+          break;
+        case 'taskCode':
+          comparison = a.taskCode.localeCompare(b.taskCode);
+          break;
+      }
+      return dir === 'desc' ? -comparison : comparison;
+    });
+  });
+
+  stats = computed<StatCard[]>(() => {
+    const batch = this.activeBatch();
+    const subAdmin = this.currentUser();
+    if (!batch || !subAdmin) return [];
+
+    const jobsForProcessing = this.jobsWithSubAdminRevenue();
+    const report = this.dataService.processPayrollForJobs(jobsForProcessing, this.dataService.parseDateAsUTC(batch.startDate), this.dataService.parseDateAsUTC(batch.endDate));
+    const myReport = report.find(r => r.id === subAdmin.id);
+    const teamReports = report.filter(r => r.id !== subAdmin.id);
+
+    const myEarnings = myReport?.totalEarnings ?? 0;
+    const teamPayout = teamReports.reduce((sum, r) => sum + r.totalEarnings, 0);
+
     return [
-       { label: 'Team Members', value: this.teamMembers().length.toString(), icon: '', color: 'blue', description: 'Managed by you' },
-       { label: 'Team Jobs', value: techs.reduce((s, t) => s + t.totalJobs, 0).toString(), icon: '', color: 'orange', description: 'Current unprocessed jobs' },
-       { label: 'Team Payout', value: `$${techs.reduce((s, t) => s + t.totalEarnings, 0).toFixed(2)}`, icon: '', color: 'green', description: 'Estimated for this period' },
-       { label: 'Team Co. Revenue', value: `$${techs.reduce((s, t) => s + t.companyRevenue, 0).toFixed(2)}`, icon: '', color: 'purple', description: 'From team jobs' },
+      { label: 'My Earnings', value: myEarnings.toLocaleString('en-US', { style: 'currency', currency: 'USD' }), icon: 'revenue', color: 'green', description: 'Your personal job and profit earnings' },
+      { label: 'Team Payout', value: teamPayout.toLocaleString('en-US', { style: 'currency', currency: 'USD' }), icon: 'users', color: 'blue', description: 'Total payout for your team members' },
+      { label: 'Total Jobs in Batch', value: (jobsForProcessing.length).toString(), icon: 'jobs', color: 'orange', description: 'Jobs for you and your team' },
+      { label: 'Team Profit', value: ((myReport?.totalEarnings ?? 0) - (myReport?.processedJobs.reduce((s,j)=>s+j.earning, 0) ?? 0)).toLocaleString('en-US', { style: 'currency', currency: 'USD' }), icon: 'company', color: 'purple', description: 'Your profit from team jobs' },
     ];
   });
   
-  showJobModal = signal(false);
-  isSavingJob = signal(false);
-  jobToEdit: WritableSignal<Job | null> = signal(null);
-  jobForm: FormGroup;
-  
-  teamPayrollHistory = computed(() => {
-    const teamUserIds = new Set([...this.teamMembers().map(u => u.id), this.currentUser()?.id]);
-    return this.dataService.publishedPayrolls()
-      .filter(p => p.status === 'finalized')
-      .map(p => ({ ...p, reportData: p.reportData.filter(rd => teamUserIds.has(rd.id)) }))
-      .filter(p => p.reportData.length > 0);
+  // Signals for finalized batches history
+  finalizedBatches = computed(() => {
+    const subAdminId = this.currentUser()?.id;
+    if (!subAdminId) return [];
+    return this.dataService.subAdminBatches()
+      .filter(b => b.subAdminId === subAdminId && b.status === 'finalized')
+      .sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
   });
 
-  selectedTeamPayrollId = signal<string | null>(null);
-  selectedReportTechnicianId = signal<number | null>(null);
+  selectedFinalizedBatchId = signal<string | null>(null);
 
-  selectedTeamPayroll = computed(() => this.teamPayrollHistory().find(p => p.id === this.selectedTeamPayrollId()) ?? null);
+  selectedFinalizedBatch = computed(() => {
+    const id = this.selectedFinalizedBatchId();
+    if (!id) return null;
+    return this.finalizedBatches().find(b => b.id === id) ?? null;
+  });
+
+  selectedFinalizedBatchJobs = computed(() => {
+    const batch = this.selectedFinalizedBatch();
+    const rateCategory = this.subAdminRateCategory();
+    if (!batch || !rateCategory) return [];
+    
+    const companyRates = new Map<string, number>(rateCategory.rates.map(r => [r.taskCode, r.rate]));
+    const uMap = this.userMap();
+
+    return (batch.jobs || [])
+      .map(job => {
+          const companyRateForJob = companyRates.get(job.taskCode) ?? 0;
+          const subAdminRevenue = companyRateForJob * job.quantity;
+          return {
+              ...job, 
+              revenue: subAdminRevenue,
+              techName: uMap.get(job.techId)?.name || 'Unknown'
+          };
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  });
+
+
+  // Modal State
+  showJobModal = signal(false);
+  isSavingJob = signal(false);
+  jobToEdit = signal<Job | null>(null);
+  jobForm: FormGroup;
   
-  selectedTechnicianJobs = computed(() => {
-    const techId = this.teamProcessedTechnicians().find(t => t.id === this.selectedReportTechnicianId())?.techId;
-    if (!techId) return [];
-    return this.teamJobs().filter(j => j.techId === techId);
+  showDeleteJobConfirm = signal(false);
+  jobToDelete = signal<Job | null>(null);
+  
+  showTransferModal = signal(false);
+  jobToTransfer = signal<Job | null>(null);
+  transferToTechId = signal<string>('');
+  isTransferring = signal(false);
+
+  showFinalizeConfirm = signal(false);
+
+  // Rate Management State
+  selectedRateEmployeeId = signal<string | null>(null);
+
+  subAdminCompanyTasks = computed<Rate[]>(() => {
+    const category = this.subAdminRateCategory();
+    if (!category) return [];
+    return category.rates.sort((a,b) => a.taskCode.localeCompare(b.taskCode));
+  });
+  
+  employeeRateOverrides = computed<RateOverrideInfo[]>(() => {
+    const employeeId = this.selectedRateEmployeeId();
+    if (!employeeId) return [];
+    
+    const employee = this.teamMembers().find(tm => tm.id === employeeId);
+    if (!employee) return [];
+    
+    const companyTasks = this.subAdminCompanyTasks();
+    const currentOverrides = new Map(employee.payoutOverrides?.map(o => [o.taskCode, o.rate]));
+
+    return companyTasks.map(task => ({
+        taskCode: task.taskCode,
+        companyRate: task.rate,
+        currentOverride: currentOverrides.get(task.taskCode), // number | undefined
+        newOverride: signal(currentOverrides.get(task.taskCode)?.toString() ?? ''),
+    }));
   });
 
   constructor() {
     this.fb = inject(FormBuilder);
     this.jobForm = this.fb.group({
       techId: [{value: '', disabled: true}, Validators.required],
+      workOrder: [{value: '', disabled: true}],
       date: ['', Validators.required],
       taskCode: ['', Validators.required],
       revenue: ['', [Validators.required, Validators.min(0)]],
+      quantity: [1, [Validators.required, Validators.min(0)]],
+      rateOverride: [null as number | null],
     });
   }
 
   selectTab(tab: SubAdminTab) { this.activeTab.set(tab); }
-  selectTeamPayroll(payrollId: string) { this.selectedTeamPayrollId.set(payrollId); }
-  getTechName(techId: string): string { return this.dataService.users().find(u => u.techId === techId)?.name || 'Unknown'; }
-  openEditJobModal(job: Job) { this.jobToEdit.set(job); this.jobForm.patchValue(job); this.showJobModal.set(true); }
+  getTechName(techId: string): string { return this.userMap().get(techId)?.name || 'Unknown'; }
+  logout(): void { this.authService.logout(); }
+  
+  openEditJobModal(job: Job) { 
+    this.jobToEdit.set(job); 
+    this.jobForm.patchValue({
+      ...job,
+      rateOverride: job.rateOverride ?? ''
+    }); 
+    this.showJobModal.set(true); 
+  }
   closeJobModal() { this.showJobModal.set(false); this.jobToEdit.set(null); }
-
-  toggleTechnicianDetails(techId: number) {
-    this.selectedReportTechnicianId.update(current => current === techId ? null : techId);
-  }
-
-  getRateCategoryName(id: number | undefined): string {
-    if (id === undefined) return 'Not Assigned';
-    return this.rateCategories().find(c => c.id === id)?.name || 'Unknown Category';
-  }
 
   async saveJob(): Promise<void> {
     if (this.jobForm.invalid) return;
     const editingJob = this.jobToEdit();
-    if (!editingJob) return;
+    const batch = this.activeBatch();
+    if (!editingJob || !batch) return;
 
     this.isSavingJob.set(true);
+    const formValue = this.jobForm.getRawValue();
     try {
-        await this.dataService.updateJob({ ...editingJob, ...this.jobForm.getRawValue() });
+        const rateOverrideValue = formValue.rateOverride;
+        const rateOverride = (rateOverrideValue === '' || rateOverrideValue === null) ? undefined : Number(rateOverrideValue);
+
+        const updatedJob: Job = {
+          ...editingJob,
+          date: formValue.date,
+          taskCode: formValue.taskCode,
+          revenue: Number(formValue.revenue),
+          quantity: Number(formValue.quantity),
+          rateOverride: rateOverride,
+        };
+        await this.dataService.updateSubAdminBatchJob(batch.id, updatedJob);
         this.notificationService.showSuccess('Job updated successfully.');
         this.closeJobModal();
     } catch(e) {
@@ -146,27 +324,121 @@ export class SubAdminDashboardComponent {
     }
   }
   
-  async deleteJob(jobId: number): Promise<void> {
-    if (confirm('Are you sure you want to delete this job?')) {
-      await this.dataService.deleteJob(jobId);
-      this.notificationService.showSuccess('Job deleted successfully.');
+  deleteJob(job: Job): void {
+    this.jobToDelete.set(job);
+    this.showDeleteJobConfirm.set(true);
+  }
+
+  async handleJobDelete(confirmed: boolean): Promise<void> {
+    const job = this.jobToDelete();
+    const batch = this.activeBatch();
+    this.showDeleteJobConfirm.set(false);
+
+    if (confirmed && job && batch) {
+      try {
+        await this.dataService.deleteSubAdminBatchJob(batch.id, job.id);
+        this.notificationService.showSuccess('Job deleted from batch.');
+      } catch (error) {
+        this.notificationService.showError(error instanceof Error ? error.message : 'Failed to delete job.');
+      }
+    }
+    this.jobToDelete.set(null);
+  }
+
+  openTransferModal(job: Job): void {
+    this.jobToTransfer.set(job);
+    this.transferToTechId.set('');
+    this.showTransferModal.set(true);
+  }
+  
+  closeTransferModal(): void {
+    this.showTransferModal.set(false);
+    this.jobToTransfer.set(null);
+  }
+  
+  async confirmTransfer(): Promise<void> {
+    const job = this.jobToTransfer();
+    const newTechId = this.transferToTechId();
+    const batch = this.activeBatch();
+
+    if (!job || !newTechId || !batch) {
+      this.notificationService.showError('Invalid transfer details.');
+      return;
+    }
+    
+    this.isTransferring.set(true);
+    try {
+      await this.dataService.transferSubAdminBatchJob(batch.id, job.id, newTechId);
+      this.notificationService.showSuccess(`Job transferred successfully.`);
+      this.closeTransferModal();
+    } catch(e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.notificationService.showError(msg);
+    } finally {
+      this.isTransferring.set(false);
     }
   }
 
-  downloadExcel() {
-    const data = this.teamProcessedTechnicians().map(tech => ({
-      'Tech ID': tech.techId, 'Name': tech.name, 'Jobs': tech.totalJobs, 'Revenue': tech.totalRevenue,
-      'Adjustments': this.getAdjustmentsTotal(tech), 'Payout': tech.totalEarnings, 'Co. Revenue': tech.companyRevenue,
-    }));
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Team Report');
-    XLSX.writeFile(workbook, `team_report_${new Date().toISOString().split('T')[0]}.xlsx`);
+  finalizeBatch() {
+    if (!this.activeBatch()) return;
+    this.showFinalizeConfirm.set(true);
   }
 
-  getAdjustmentsTotal(tech: ProcessedTechnician): number {
-    return tech.adjustments.reduce((sum, adj) => sum + adj.amount, 0);
+  async handleFinalize(confirmed: boolean): Promise<void> {
+    this.showFinalizeConfirm.set(false);
+    const batch = this.activeBatch();
+    if (confirmed && batch) {
+      try {
+        await this.dataService.finalizeSubAdminBatch(batch.id);
+        this.notificationService.showSuccess('Payroll batch finalized and published for your team.');
+        this.activeTab.set('teamPaystubs');
+      } catch(e) {
+        const msg = e instanceof Error ? e.message : 'Failed to finalize batch.';
+        this.notificationService.showError(msg);
+      }
+    }
   }
 
-  logout(): void { this.authService.logout(); }
+  selectFinalizedBatch(batchId: string | null) {
+    this.selectedFinalizedBatchId.set(batchId);
+  }
+  
+  async applyPayoutOverride(taskCode: string, newRateStr: string): Promise<void> {
+    const employeeId = this.selectedRateEmployeeId();
+    const employee = this.teamMembers().find(tm => tm.id === employeeId);
+    if (!employee) {
+        this.notificationService.showError('No employee selected.');
+        return;
+    }
+
+    const newOverrides = [...(employee.payoutOverrides || [])];
+    const index = newOverrides.findIndex(o => o.taskCode === taskCode);
+
+    if (newRateStr.trim() === '') {
+        // If the input is empty, remove the override if it exists
+        if (index > -1) {
+            newOverrides.splice(index, 1);
+        }
+    } else {
+        const newRate = parseFloat(newRateStr);
+        if (isNaN(newRate)) {
+            this.notificationService.showError('Invalid rate. Please enter a valid number.');
+            return;
+        }
+        
+        // If an override exists, update it. Otherwise, add a new one.
+        if (index > -1) {
+            newOverrides[index].rate = newRate;
+        } else {
+            newOverrides.push({ taskCode, rate: newRate });
+        }
+    }
+
+    try {
+        await this.dataService.updateUser({ ...employee, payoutOverrides: newOverrides });
+        this.notificationService.showSuccess(`Payout for ${taskCode} updated for ${employee.name}.`);
+    } catch (e) {
+        this.notificationService.showError('Failed to save override.');
+    }
+  }
 }

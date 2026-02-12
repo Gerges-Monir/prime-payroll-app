@@ -4,13 +4,14 @@ import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angula
 import { DatabaseService } from '../../services/database.service';
 import { Rate, RateCategory } from '../../models/payroll.model';
 import { NotificationService } from '../../services/notification.service';
+import { ConfirmationModalComponent } from '../shared/confirmation-modal/confirmation-modal.component';
 
 declare var XLSX: any;
 
 @Component({
   selector: 'app-rate-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, ConfirmationModalComponent, CurrencyPipe],
   templateUrl: './rate-management.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -20,7 +21,7 @@ export class RateManagementComponent {
   private fb: FormBuilder;
   
   rateCategories = this.dataService.rateCategories;
-  selectedCategoryId = signal<number | null>(null);
+  selectedCategoryId = signal<string | null>(null);
   
   selectedCategory = computed(() => {
     const catId = this.selectedCategoryId();
@@ -44,6 +45,15 @@ export class RateManagementComponent {
   isSavingRate = signal(false);
   rateToEdit: WritableSignal<Rate | null> = signal(null);
   rateForm: FormGroup;
+  
+  // Signals for confirmation modals
+  showDeleteRateConfirm = signal(false);
+  rateToDelete = signal<Rate | null>(null);
+  
+  showDeleteCategoryConfirm = signal(false);
+  categoryToDelete = signal<RateCategory | null>(null);
+
+  showFormatHelp = signal(false);
 
   constructor() {
     this.fb = inject(FormBuilder);
@@ -59,12 +69,12 @@ export class RateManagementComponent {
       if (selectedId !== null && !categories.some(c => c.id === selectedId)) {
         this.selectedCategoryId.set(categories[0]?.id || null);
       }
-    }, { allowSignalWrites: true });
+    });
   }
 
   selectCategory(event: Event) {
     const select = event.target as HTMLSelectElement;
-    this.selectedCategoryId.set(Number(select.value));
+    this.selectedCategoryId.set(select.value);
     this.uploadStatus.set('idle');
   }
 
@@ -87,7 +97,7 @@ export class RateManagementComponent {
     
     try {
       if (editingCategory) {
-        await this.dataService.updateRateCategory(editingCategory.id, name);
+        await this.dataService.updateRateCategory(String(editingCategory.id), name);
         this.notificationService.showSuccess(`Category '${name}' updated.`);
       } else {
         await this.dataService.addRateCategory(name);
@@ -104,17 +114,32 @@ export class RateManagementComponent {
     }
   }
 
-  async deleteCategory(categoryId: number) {
-    const category = this.rateCategories().find(c => c.id === categoryId);
-    if (confirm(`Are you sure you want to delete the category "${category?.name}"? Any users assigned to it will be unassigned.`)) {
+  deleteCategory(category: RateCategory): void {
+    console.log(`[Rate Mgt] 1. Delete category button clicked for ID: ${category.id}`);
+    console.log(`[Rate Mgt] 2. Category to delete:`, JSON.parse(JSON.stringify(category)));
+    this.categoryToDelete.set(category);
+    this.showDeleteCategoryConfirm.set(true);
+  }
+
+  async handleCategoryDelete(confirmed: boolean): Promise<void> {
+    const category = this.categoryToDelete();
+    this.showDeleteCategoryConfirm.set(false);
+
+    if (confirmed && category) {
+      console.log(`[Rate Mgt] 3. User confirmed deletion for category '${category.name}'.`);
       try {
-        await this.dataService.deleteRateCategory(categoryId);
-        this.notificationService.showSuccess(`Category '${category?.name}' deleted.`);
+        await this.dataService.deleteRateCategory(String(category.id));
+        this.notificationService.showSuccess(`Category '${category.name}' deleted.`);
+        console.log(`[Rate Mgt] 4. ✅ Successfully called dataService.deleteRateCategory for ID: ${category.id}`);
       } catch (error) {
+        console.error(`[Rate Mgt] 5. ❌ Error deleting category ID ${category.id}:`, error);
         const msg = error instanceof Error ? error.message : String(error);
         this.notificationService.showError(msg);
       }
+    } else {
+        console.log(`[Rate Mgt] 3. User cancelled deletion for category ID: ${category?.id}`);
     }
+    this.categoryToDelete.set(null);
   }
 
   openRateModal(rate: Rate) {
@@ -142,7 +167,7 @@ export class RateManagementComponent {
     const updatedRates = this.currentRates().map(r => r.taskCode === editingRate.taskCode ? { ...r, rate: newRateValue } : r);
 
     try {
-        await this.dataService.updateRatesForCategory(category.id, updatedRates);
+        await this.dataService.updateRatesForCategory(String(category.id), updatedRates);
         this.notificationService.showSuccess(`Rate for '${editingRate.taskCode}' updated.`);
         this.closeRateModal();
     } catch (error) {
@@ -153,15 +178,39 @@ export class RateManagementComponent {
     }
   }
 
-  async deleteRate(taskCode: string) {
-    const category = this.selectedCategory();
-    if (!category) return;
-
-    if (confirm(`Delete rate for task code "${taskCode}"?`)) {
-      const updatedRates = this.currentRates().filter(r => r.taskCode !== taskCode);
-      await this.dataService.updateRatesForCategory(category.id, updatedRates);
-      this.notificationService.showSuccess(`Rate for '${taskCode}' deleted.`);
+  deleteRate(taskCode: string): void {
+    console.log(`[Rate Mgt] 1. Delete rate button clicked for task code: ${taskCode}`);
+    const rate = this.currentRates().find(r => r.taskCode === taskCode);
+    if (!rate) {
+        console.error(`[Rate Mgt] ❌ ERROR: Cannot delete rate, no rate found for task code: ${taskCode}`);
+        return;
     }
+    console.log(`[Rate Mgt] 2. Rate to delete:`, JSON.parse(JSON.stringify(rate)));
+    this.rateToDelete.set(rate);
+    this.showDeleteRateConfirm.set(true);
+  }
+  
+  async handleRateDelete(confirmed: boolean): Promise<void> {
+    const rate = this.rateToDelete();
+    const category = this.selectedCategory();
+    this.showDeleteRateConfirm.set(false);
+
+    if (confirmed && rate && category) {
+      console.log(`[Rate Mgt] 3. User confirmed deletion for rate '${rate.taskCode}'.`);
+      try {
+        const updatedRates = this.currentRates().filter(r => r.taskCode !== rate.taskCode);
+        await this.dataService.updateRatesForCategory(String(category.id), updatedRates);
+        this.notificationService.showSuccess(`Rate for '${rate.taskCode}' deleted.`);
+        console.log(`[Rate Mgt] 4. ✅ Successfully deleted rate for task code: ${rate.taskCode}`);
+      } catch (error) {
+        console.error(`[Rate Mgt] 5. ❌ Error deleting rate for task code ${rate.taskCode}:`, error);
+        const msg = error instanceof Error ? error.message : 'Failed to delete rate.';
+        this.notificationService.showError(msg);
+      }
+    } else {
+        console.log(`[Rate Mgt] 3. Deletion cancelled for task code: ${rate?.taskCode}`);
+    }
+    this.rateToDelete.set(null);
   }
 
   onFileSelected(event: Event): void {
@@ -187,7 +236,7 @@ export class RateManagementComponent {
         const result = this.processRateSheet(jsonData);
 
         if (result.success) {
-          await this.dataService.updateRatesForCategory(catId, result.rates);
+          await this.dataService.updateRatesForCategory(String(catId), result.rates);
           this.uploadStatus.set('success');
           this.uploadMessage.set(`Successfully replaced ${result.rates.length} rates.`);
         } else {
@@ -212,7 +261,7 @@ export class RateManagementComponent {
 
     if (!taskCodeHeader || !rateHeader) return { success: false, message: `Missing 'Task Code' and/or 'Rate' columns.`, rates: [] };
     
-    const newRates: Rate[] = [];
+    const rateMap = new Map<string, number>();
     for (const [index, row] of data.entries()) {
       const taskCode = row[taskCodeHeader];
       const rate = row[rateHeader];
@@ -225,8 +274,11 @@ export class RateManagementComponent {
       const parsedRate = parseFloat(String(rate).replace(/[^0-9.-]+/g,""));
       if (isNaN(parsedRate)) return { success: false, message: `Invalid rate in row ${index + 2}.`, rates: [] };
 
-      newRates.push({ taskCode: taskCodeStr, rate: parsedRate });
+      // Use map to handle duplicates, last one wins. This ensures uniqueness.
+      rateMap.set(taskCodeStr, parsedRate);
     }
+
+    const newRates = Array.from(rateMap.entries()).map(([taskCode, rate]) => ({ taskCode, rate }));
     return { success: true, rates: newRates };
   }
 }

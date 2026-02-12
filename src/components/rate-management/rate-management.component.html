@@ -1,30 +1,37 @@
 <div class="animate-fade-in">
   <div class="flex flex-col md:flex-row justify-between md:items-start mb-6 gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-brand-text-primary">Rate Management</h2>
-      <p class="text-brand-text-secondary">Manage rate categories and upload their corresponding payment rates.</p>
+      <h2 class="text-xl font-semibold text-slate-800">Rate Management</h2>
+      <p class="text-slate-500">Manage rate categories and upload their corresponding payment rates.</p>
     </div>
     <div class="flex items-center gap-2">
       <button 
         (click)="openCategoryModal()" 
-        class="bg-brand-surface hover:bg-slate-50 text-brand-text-primary border border-brand-border font-semibold p-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm">
+        class="bg-slate-100 hover:bg-sky-100 text-slate-800 border border-slate-200 font-semibold p-2.5 rounded-lg flex items-center justify-center gap-2 shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" /></svg>
         <span class="flex flex-col items-start leading-tight -mt-0.5">
-          <span class="font-normal text-xs text-brand-text-secondary">New</span>
+          <span class="font-normal text-xs text-slate-500">New</span>
           <span class="font-semibold text-sm">Category</span>
         </span>
       </button>
-      <label class="bg-brand-surface hover:bg-slate-50 text-brand-text-primary border border-brand-border font-bold p-2 rounded-lg cursor-pointer shadow-sm flex items-center justify-center aspect-square h-full" title="Upload Rates for Selected Category">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
-        <input type="file" (change)="onFileSelected($event)" accept=".xlsx" class="hidden">
-      </label>
+      <div class="flex items-center gap-1">
+        <label class="bg-slate-100 hover:bg-sky-100 text-slate-800 border border-slate-200 font-bold p-2 rounded-lg cursor-pointer shadow-sm flex items-center justify-center aspect-square h-full" title="Upload Rates for Selected Category">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" /></svg>
+            <input type="file" (change)="onFileSelected($event)" accept=".xlsx" class="hidden">
+        </label>
+         <button (click)="showFormatHelp.set(true)" type="button" class="text-slate-400 hover:text-blue-600 h-full flex items-center justify-center" title="View expected file format">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+        </button>
+      </div>
     </div>
   </div>
 
   <div class="mb-4 flex items-end gap-2">
     <div class="flex-grow">
-      <label for="rate-category" class="block text-sm font-medium text-brand-text-secondary mb-1">Selected Rate Category</label>
-      <select id="rate-category" (change)="selectCategory($event)" [value]="selectedCategoryId() || ''" class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+      <label for="rate-category" class="block text-sm font-medium text-slate-500 mb-1">Selected Rate Category</label>
+      <select id="rate-category" (change)="selectCategory($event)" [value]="selectedCategoryId() || ''" class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none">
         @if (rateCategories().length === 0) {
           <option value="" disabled>Please create a category</option>
         }
@@ -35,10 +42,10 @@
     </div>
     @if (selectedCategory(); as category) {
       <div class="flex-shrink-0 flex gap-2">
-        <button (click)="openCategoryModal(category)" class="bg-brand-surface hover:bg-slate-100 border border-brand-border text-brand-text-primary font-bold py-3 px-3 rounded-lg flex items-center justify-center shadow-sm" title="Edit Category Name">
+        <button (click)="openCategoryModal(category)" class="bg-blue-100 text-blue-800 hover:bg-blue-200 font-bold py-3 px-3 rounded-lg flex items-center justify-center shadow-sm" title="Edit Category Name">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="m2.695 14.762-1.262 3.155a.5.5 0 0 0 .65.65l3.155-1.262a4 4 0 0 0 1.343-.886L17.5 5.501a2.121 2.121 0 0 0-3-3L3.58 13.42a4 4 0 0 0-.886 1.343Z" /></svg>
         </button>
-        <button (click)="deleteCategory(category.id)" class="bg-brand-surface hover:bg-slate-100 border border-brand-border text-brand-danger font-bold py-3 px-3 rounded-lg flex items-center justify-center shadow-sm" title="Delete Category">
+        <button (click)="deleteCategory(category)" class="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white font-bold py-3 px-3 rounded-lg flex items-center justify-center shadow-sm" title="Delete Category">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.58.22-2.365.468a.75.75 0 1 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 1 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" /></svg>
         </button>
       </div>
@@ -68,38 +75,38 @@
   }
 
   <!-- Rates Table -->
-  <div class="border border-brand-border rounded-lg">
+  <div class="border border-slate-200 rounded-lg">
     <div class="max-h-[600px] overflow-y-auto">
       <table class="w-full text-left">
-        <thead class="sticky top-0 bg-slate-50 z-10 border-b border-brand-border">
+        <thead class="sticky top-0 bg-slate-100 z-10 border-b border-slate-200">
           <tr>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider">Task Code</th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-right">Rate</th>
-            <th class="p-4 text-sm font-semibold uppercase text-brand-text-secondary tracking-wider text-center">Actions</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider">Task Code</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-right">Rate</th>
+            <th class="p-4 text-sm font-semibold uppercase text-slate-500 tracking-wider text-center">Actions</th>
           </tr>
         </thead>
-        <tbody class="divide-y divide-brand-border">
+        <tbody class="divide-y divide-slate-200">
           @for (rate of currentRates(); track rate.taskCode) {
-            <tr class="hover:bg-slate-50/70 group">
-              <td class="p-4 font-medium text-brand-text-primary">{{ rate.taskCode }}</td>
-              <td class="p-4 font-mono text-brand-text-primary text-right">{{ rate.rate | currency }}</td>
+            <tr class="hover:bg-slate-50 group">
+              <td class="p-4 font-medium text-slate-800">{{ rate.taskCode }}</td>
+              <td class="p-4 font-mono text-slate-800 text-right">{{ rate.rate | currency }}</td>
               <td class="p-4 text-center">
                   <div class="flex justify-center gap-2">
-                      <button (click)="openRateModal(rate)" class="bg-white border border-brand-border text-brand-text-secondary hover:bg-slate-100 hover:text-brand-text-primary font-bold py-1 px-3 rounded-md text-sm">Edit</button>
-                      <button (click)="deleteRate(rate.taskCode)" class="bg-white border border-red-300 text-red-600 hover:bg-red-50 font-bold py-1 px-3 rounded-md text-sm">Delete</button>
+                      <button (click)="openRateModal(rate)" class="bg-blue-100 text-blue-800 hover:bg-blue-200 font-bold py-1 px-3 rounded-md text-sm transition-colors">Edit</button>
+                      <button (click)="deleteRate(rate.taskCode)" class="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white font-bold py-1 px-3 rounded-md text-sm">Delete</button>
                   </div>
               </td>
             </tr>
           } @empty {
             <tr>
-              <td colspan="3" class="text-center text-brand-text-secondary py-16">
+              <td colspan="3" class="text-center text-slate-500 py-16">
                  @if (selectedCategoryId() === null) {
-                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.95a7.5 7.5 0 1 0 0 14.1M13.5 4.95A7.5 7.5 0 0 0 6 12m7.5 0h-7.5m.75-12.45v.01M12 2.25v.01M15.75 21v-.01M21 12v.01M18.75 3.75v.01M3.75 18.75v.01M3 12h.01M16.5 20.25v.01" /></svg>
-                    <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">Select or Create a Category</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10.05 4.95a7.5 7.5 0 1 0 0 14.1M13.5 4.95A7.5 7.5 0 0 0 6 12m7.5 0h-7.5m.75-12.45v.01M12 2.25v.01M15.75 21v-.01M21 12v.01M18.75 3.75v.01M3.75 18.75v.01M3 12h.01M16.5 20.25v.01" /></svg>
+                    <h3 class="mt-4 text-xl font-semibold text-slate-800">Select or Create a Category</h3>
                     <p class="mt-1">Choose a category to view its rates or add a new one.</p>
                  } @else {
-                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-slate-400" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
-                    <h3 class="mt-4 text-xl font-semibold text-brand-text-primary">No Rates Loaded</h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-16 w-16 text-sky-500" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" /></svg>
+                    <h3 class="mt-4 text-xl font-semibold text-slate-800">No Rates Loaded</h3>
                     <p class="mt-1">Upload a rate sheet for this category to begin.</p>
                  }
               </td>
@@ -113,21 +120,21 @@
 
 <!-- Add/Edit Category Modal -->
 @if (showCategoryModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
-    <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-brand-border">
-      <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">{{ categoryToEdit() ? 'Edit' : 'Create New' }} Rate Category</h2>
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">{{ categoryToEdit() ? 'Edit' : 'Create New' }} Rate Category</h2>
       <form [formGroup]="categoryForm" (ngSubmit)="saveCategory()">
         <div>
-          <label for="category-name" class="block text-sm font-medium text-brand-text-primary mb-1.5">Category Name</label>
+          <label for="category-name" class="block text-sm font-medium text-slate-800 mb-1.5">Category Name</label>
           <input 
             id="category-name"
             formControlName="name" 
             placeholder="e.g., Residential, Commercial" 
-            class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+            class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none transition-colors placeholder:text-slate-400">
         </div>
         <div class="flex justify-end gap-4 mt-8">
-          <button type="button" (click)="closeCategoryModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
-          <button type="submit" [disabled]="categoryForm.invalid" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed">Save Category</button>
+          <button type="button" (click)="closeCategoryModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="categoryForm.invalid" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">Save Category</button>
         </div>
       </form>
     </div>
@@ -136,25 +143,81 @@
 
 <!-- Edit Rate Modal -->
 @if (showRateModal()) {
-  <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in p-4">
-    <div class="bg-brand-surface rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-brand-border">
-      <h2 class="text-2xl font-bold mb-6 text-brand-text-primary">Edit Rate for <span class="text-brand-primary">{{ rateToEdit()?.taskCode }}</span></h2>
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md m-4 border border-slate-200">
+      <h2 class="text-2xl font-bold mb-6 text-slate-800">Edit Rate for <span class="text-blue-600">{{ rateToEdit()?.taskCode }}</span></h2>
       <form [formGroup]="rateForm" (ngSubmit)="saveRate()">
         <div>
-           <label for="rate-value" class="block text-sm font-medium text-brand-text-primary mb-1.5">New Rate</label>
+           <label for="rate-value" class="block text-sm font-medium text-slate-800 mb-1.5">New Rate</label>
           <input 
             id="rate-value"
             formControlName="rate" 
             type="number"
             step="0.01"
             placeholder="0.00" 
-            class="bg-brand-input-bg text-brand-text-primary p-3 rounded-md w-full border border-brand-border focus:ring-2 focus:ring-brand-primary/50 outline-none">
+            class="bg-slate-50 text-slate-800 p-3 rounded-md w-full border border-slate-300 focus:ring-2 focus:ring-blue-500/50 outline-none transition-colors placeholder:text-slate-400">
         </div>
         <div class="flex justify-end gap-4 mt-8">
-          <button type="button" (click)="closeRateModal()" class="bg-white hover:bg-slate-100 text-brand-text-secondary border border-brand-border font-bold py-2 px-6 rounded-lg">Cancel</button>
-          <button type="submit" [disabled]="rateForm.invalid" class="bg-brand-primary hover:bg-brand-accent text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-400 disabled:cursor-not-allowed">Save Rate</button>
+          <button type="button" (click)="closeRateModal()" class="bg-slate-100 text-slate-800 font-bold py-2 px-6 rounded-lg hover:bg-slate-200 transition-colors">Cancel</button>
+          <button type="submit" [disabled]="rateForm.invalid" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg disabled:bg-slate-300 disabled:cursor-not-allowed">Save Rate</button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+<!-- Delete Category Confirmation Modal -->
+@if (showDeleteCategoryConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Category Deletion"
+    [message]="'Are you sure you want to delete the category \'' + categoryToDelete()?.name + '\'? Any users assigned to it will be unassigned.'"
+    confirmText="Delete Category"
+    confirmStyle="danger"
+    (confirmed)="handleCategoryDelete($event)">
+  </app-confirmation-modal>
+}
+
+<!-- Delete Rate Confirmation Modal -->
+@if (showDeleteRateConfirm()) {
+  <app-confirmation-modal 
+    title="Confirm Rate Deletion"
+    [message]="'Are you sure you want to delete the rate for task code \'' + rateToDelete()?.taskCode + '\'?'"
+    confirmText="Delete Rate"
+    confirmStyle="danger"
+    (confirmed)="handleRateDelete($event)">
+  </app-confirmation-modal>
+}
+
+<!-- Format Help Modal -->
+@if (showFormatHelp()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4" (click)="showFormatHelp.set(false)">
+    <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-lg border border-slate-200" (click)="$event.stopPropagation()">
+      <div class="flex justify-between items-start">
+        <h2 class="text-xl font-bold mb-4 text-slate-800">Expected Rate File Format</h2>
+        <button (click)="showFormatHelp.set(false)" class="text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <p class="text-sm text-slate-600 mb-4">The file should contain columns with headers like 'Task Code' and 'Rate'. The system will replace all existing rates in the selected category with the rates from the file.</p>
+      
+      <div class="border border-slate-200 rounded-lg overflow-hidden">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-100">
+            <tr>
+              <th class="p-3 font-semibold text-slate-600">Task Code</th>
+              <th class="p-3 font-semibold text-slate-600 text-right">Rate</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-slate-200">
+            <tr>
+              <td class="p-3 font-mono text-slate-800">I&R Residential</td>
+              <td class="p-3 font-mono text-slate-800 text-right">55.50</td>
+            </tr>
+             <tr>
+              <td class="p-3 font-mono text-slate-800">Install Modem</td>
+              <td class="p-3 font-mono text-slate-800 text-right">25.00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 }

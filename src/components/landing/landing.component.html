@@ -1,0 +1,274 @@
+<!-- Header & Navigation -->
+<header [class]="isScrolled() ? 'bg-white professional-shadow border-b-2 border-sky-200' : 'bg-transparent'" class="fixed w-full top-0 z-50 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-20">
+            <!-- Logo/Branding -->
+            <a href="#hero" class="flex items-center space-x-3 transition duration-300 transform hover:scale-[1.02]">
+                <img [src]="companySettings().logoUrl" alt="Company Logo" class="h-12 transition-all">
+            </a>
+            
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden md:flex items-center space-x-4">
+                <a href="#services" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 transition duration-300 transform hover:-translate-y-0.5">Our Services</a>
+                <a href="#clients" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 transition duration-300 transform hover:-translate-y-0.5">Clients</a>
+                <a href="#careers" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 transition duration-300 transform hover:-translate-y-0.5">Careers</a>
+                <a (click)="loginClicked.emit()" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 transition duration-300 transform hover:-translate-y-0.5 cursor-pointer">Employee Login</a>
+                <button (click)="showContactModal.set(true)" class="px-4 py-2 bg-sky-500 text-white rounded-lg font-semibold shadow-md hover:bg-sky-600 transition duration-300 transform hover:-translate-y-0.5">Contact Us</button>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main>
+    <!-- 1. Hero Section (Animated Motto) -->
+    <section id="hero" class="bg-white relative flex items-center justify-center min-h-[600px] lg:min-h-[700px] text-slate-800 overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <!-- Main Card -->
+            <div class="bg-white border border-slate-200 rounded-3xl shadow-2xl shadow-blue-200/60 p-8 sm:p-12">
+                <h1 class="text-5xl sm:text-6xl font-extrabold mb-6 leading-tight text-balance text-slate-900">
+                    {{ companySettings().companyName }}
+                </h1>
+                
+                <div class="flex items-center justify-center h-20 mt-4 text-sky-500">
+                    <h2 id="motto-text" class="relative flex items-center justify-center text-3xl sm:text-4xl font-light">
+                        <span>Wire your worl</span>
+                        <span class="relative">d
+                            <div id="plug-animation-container" class="absolute left-[0.6rem] top-1/2 -translate-y-1/2 h-[100px]">
+                                <svg class="w-[300px] h-[100px] overflow-visible" viewBox="0 0 240 100">
+                                    <!-- Cable from 'd' -->
+                                    <path id="cable-line" d="M0 50 C 40 50, 60 50, 80 50" stroke="currentColor" stroke-width="3" fill="none"/>
+                                    
+                                    <!-- Modem and Plug Group -->
+                                    <g id="modem-group">
+                                        <g id="cable-plug">
+                                            <rect x="80" y="45" width="15" height="10" rx="2" fill="currentColor"/>
+                                        </g>
+                                        <!-- Modem Body -->
+                                        <rect x="110" y="35" width="70" height="30" rx="5" fill="#dbeafe" stroke="#93c5fd" stroke-width="1.5"/>
+                                        <rect x="115" y="55" width="60" height="4" rx="2" fill="#bfdbfe"/>
+                                        <circle id="status-light" cx="170" cy="43" r="3" fill="#f87171"/>
+                                        <!-- Wifi Symbol -->
+                                        <g id="wifi-symbol" transform="translate(145, 30)">
+                                            <path id="wifi-3" d="M -20 -5 A 25 25 0 0 1 20 -5" stroke="#4ade80" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                            <path id="wifi-2" d="M -12 -5 A 15 15 0 0 1 12 -5" stroke="#4ade80" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                            <path id="wifi-1" d="M -4 -5 A 5 5 0 0 1 4 -5" stroke="#4ade80" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                        </g>
+                                    </g>
+        
+                                    <!-- Globe and People Group -->
+                                    <g id="globe-group">
+                                        <!-- Globe -->
+                                        <circle id="globe" cx="145" cy="50" r="25" fill="#bfdbfe" stroke="#93c5fd" stroke-width="1.5"/>
+                                        <!-- People Icons -->
+                                        <g class="person-icon" id="person-1" transform="translate(70, 10)">
+                                            <circle cx="0" cy="0" r="5" fill="#93c5fd" />
+                                            <path d="M -7 7 C -7 2, 7 2, 7 7 Z" fill="#93c5fd" />
+                                        </g>
+                                         <g class="person-icon" id="person-2" transform="translate(220, 50)">
+                                             <circle cx="0" cy="0" r="5" fill="#93c5fd" />
+                                            <path d="M -7 7 C -7 2, 7 2, 7 7 Z" fill="#93c5fd" />
+                                        </g>
+                                         <g class="person-icon" id="person-3" transform="translate(120, 90)">
+                                            <circle cx="0" cy="0" r="5" fill="#93c5fd" />
+                                            <path d="M -7 7 C -7 2, 7 2, 7 7 Z" fill="#93c5fd" />
+                                        </g>
+                                        <!-- Connecting Lines -->
+                                        <path class="connection-line" id="line-1" d="M125 40 L 70 15" stroke="#93c5fd" stroke-width="1.5" fill="none" />
+                                        <path class="connection-line" id="line-2" d="M165 55 L 220 55" stroke="#93c5fd" stroke-width="1.5" fill="none" />
+                                        <path class="connection-line" id="line-3" d="M140 75 L 120 90" stroke="#93c5fd" stroke-width="1.5" fill="none" />
+                                    </g>
+                                </svg>
+                            </div>
+                        </span>
+                    </h2>
+                </div>
+
+                <div class="mt-10 space-x-4">
+                    <a href="#services" class="inline-block px-8 py-3 bg-blue-600 text-white text-lg font-bold rounded-full shadow-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105">Explore Services</a>
+                    <button (click)="showContactModal.set(true)" class="inline-block px-8 py-3 bg-transparent border-2 border-blue-600 text-blue-600 text-lg font-semibold rounded-full hover:bg-blue-600 hover:text-white transition duration-300 transform hover:scale-105">Get In Touch</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. Services Section -->
+    <section id="services" class="py-24 bg-slate-50 scroll-animate">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold text-slate-900">Our Core Connectivity Solutions</h2>
+                <p class="mt-4 text-xl text-slate-600 max-w-3xl mx-auto">
+                    We are the specialized extension for major companies, delivering end-to-end infrastructure and technology deployment with precision and scale.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="bg-white p-8 rounded-xl professional-shadow hover:shadow-xl transition duration-300 transform hover:-translate-y-1 group">
+                    <div class="text-blue-600 mb-4 group-hover:text-sky-600 transition duration-300">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Fiber & Coaxial Deployment</h3>
+                    <p class="text-slate-500">
+                        Leading installation and maintenance of high-speed fiber optic and robust coaxial cable infrastructure. We ensure the physical backbone is solid and reliable.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl professional-shadow hover:shadow-xl transition duration-300 transform hover:-translate-y-1 group">
+                    <div class="text-blue-600 mb-4 group-hover:text-sky-600 transition duration-300">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.79V15.21a1 1 0 01-1.447.887L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Digital Entertainment & Boxes</h3>
+                    <p class="text-slate-500">
+                        Specialists in setting up and configuring streaming platforms and proprietary cable box hardware for high-quality, uninterrupted digital video delivery.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-xl professional-shadow hover:shadow-xl transition duration-300 transform hover:-translate-y-1 group">
+                    <div class="text-blue-600 mb-4 group-hover:text-sky-600 transition duration-300">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.549 23.549 0 0112 15c-3.18 0-6.236-.615-9-1.745M16 19h1a2 2 0 002-2v-4a2 2 0 00-2-2m-3-2a3 3 0 000 6h-7a3 3 0 000-6h7z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800 mb-3">Partnered Contractor Staffing</h3>
+                    <p class="text-slate-500">
+                        Providing fully trained and scalable technician contractors that integrate seamlessly with your existing service infrastructure and operational demands.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. Hiring CTA Section -->
+    <section id="careers" class="py-20 bg-gradient-to-br from-blue-700 to-blue-900 scroll-animate">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+            <h2 class="text-4xl sm:text-5xl font-extrabold mb-4">
+                Join Our Team
+            </h2>
+            <p class="text-xl font-light mb-8">
+                We are hiring skilled technicians for the cable field. Receive comprehensive training and become part of our elite contractor force.
+            </p>
+            
+            <button (click)="showOpportunitiesModal.set(true)" class="inline-block px-10 py-4 bg-white text-blue-700 font-bold text-xl rounded-xl shadow-lg hover:bg-blue-100 transition duration-300 transform hover:scale-105">
+                View Open Positions
+            </button>
+        </div>
+    </section>
+
+    <!-- 4. Client Focus Section -->
+    <section id="clients" class="py-24 bg-slate-100 scroll-animate">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-bold text-slate-900 mb-4">Our Valued Partners</h2>
+            <p class="text-lg text-slate-600 max-w-4xl mx-auto mb-12">
+                Prime Communications is proud to be a trusted deployment and technical partner for leading providers, ensuring their services reach millions of customers.
+            </p>
+            
+            <div class="flex flex-wrap justify-center items-center gap-x-12 gap-y-8">
+                @for (partner of companySettings().partners; track partner.name) {
+                    <div class="h-20 w-40 flex justify-center items-center">
+                        @if (!logoErrors().has(partner.name)) {
+                            <img [src]="partner.logoUrl" 
+                                [alt]="partner.name + ' Logo'" 
+                                class="max-h-16 w-auto object-contain transition-all duration-300 hover:scale-105"
+                                (error)="onLogoError(partner.name)">
+                        } @else {
+                            <div class="flex items-center justify-center h-full w-full bg-slate-200/50 rounded-lg p-2 text-center">
+                                <span class="font-semibold text-slate-600 text-sm">{{ partner.name }}</span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+    
+</main>
+
+<!-- Footer -->
+<footer id="contact" class="bg-slate-900 py-16 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 border-b border-slate-700 pb-10 mb-10">
+            <div>
+                <h4 class="text-2xl font-bold mb-4 text-blue-500">{{ companySettings().companyName }}</h4>
+                <p class="text-slate-400">
+                    Reliable infrastructure staffing and deployment specialists, ensuring connectivity for our partners and their customers.
+                </p>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold mb-4 text-white">Contact Information</h4>
+                <p class="text-slate-400">
+                    <span class="font-medium text-blue-400">Address:</span> {{ companySettings().companyAddress1 }}, {{ companySettings().companyAddress2 }}
+                </p>
+                <p class="text-slate-400 mt-2">
+                    <span class="font-medium text-blue-400">Email:</span> <a [href]="'mailto:' + companySettings().companyEmail" class="hover:text-white transition duration-200">{{ companySettings().companyEmail }}</a>
+                </p>
+                <p class="text-slate-400 mt-2">
+                    <span class="font-medium text-blue-400">Phone:</span> {{ companySettings().companyPhone }}
+                </p>
+            </div>
+            <div>
+                <h4 class="text-lg font-semibold mb-4 text-white">Connect With Us</h4>
+                <div class="flex space-x-4">
+                    @if (companySettings().facebookUrl) {
+                      <a [href]="companySettings().facebookUrl" target="_blank" class="text-slate-400 hover:text-blue-500 transition duration-200" aria-label="Facebook">
+                          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 10h4v4h-4v7h-4v-7H6v-4h4V8c0-3.3 2.7-6 6-6h2v4h-2c-1.1 0-2 .9-2 2v2z"/></svg>
+                      </a>
+                    }
+                    @if (companySettings().linkedinUrl) {
+                      <a [href]="companySettings().linkedinUrl" target="_blank" class="text-slate-400 hover:text-blue-500 transition duration-200" aria-label="LinkedIn">
+                          <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.76 0-5 2.24-5 5v14c0 2.76 2.24 5 5 5h14c2.76 0 5-2.24 5-5V5c0-2.76-2.24-5-5-5zM8 19H5V8h3v11zM6.5 6.7c-.96 0-1.75-.8-1.75-1.79s.79-1.79 1.75-1.79 1.75.8 1.75 1.79-.79 1.79-1.75 1.79zM20 19h-3v-5.6c0-1.33-1.07-2.4-2.4-2.4-.94 0-1.72.5-2.14 1.28C12.38 12.06 12 12.82 12 13.6V19h-3V8h3v1.3c.5-.78 1.28-1.28 2.14-1.28 1.33 0 2.4 1.07 2.4 2.4V19z"/></svg>
+                      </a>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center text-slate-500 text-sm pt-4">
+            &copy; {{ currentYear }} {{ companySettings().companyName }}. All rights reserved.
+        </div>
+    </div>
+</footer>
+
+<!-- Contact Form Modal -->
+@if (showContactModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4" (click)="showContactModal.set(false)">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl professional-shadow relative" (click)="$event.stopPropagation()">
+       <button (click)="showContactModal.set(false)" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 z-10 p-1 rounded-full hover:bg-slate-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+       </button>
+       <div class="p-6 border-b border-slate-200 text-center">
+         <h2 class="text-3xl font-bold text-slate-900">Get In Touch</h2>
+         <p class="mt-2 text-lg text-slate-600">Have a question or a project in mind? We'd love to hear from you.</p>
+       </div>
+       <app-contact-form (close)="showContactModal.set(false)"></app-contact-form>
+    </div>
+  </div>
+}
+
+<!-- Career Form Modal -->
+@if (showCareerModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4" (click)="showCareerModal.set(false)">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl professional-shadow max-h-[90vh] flex flex-col relative" (click)="$event.stopPropagation()">
+       <button (click)="showCareerModal.set(false)" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800 z-10 p-1 rounded-full hover:bg-slate-100">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+       </button>
+       <div class="p-6 border-b border-slate-200 text-center flex-shrink-0">
+         <h2 class="text-3xl font-bold text-slate-900">Apply Now</h2>
+         <p class="mt-2 text-lg text-slate-600">Join our team of skilled technicians.</p>
+       </div>
+       <app-career-form 
+         [jobOpening]="jobToApplyFor()" 
+         [allJobOpenings]="activeJobOpenings()"
+         (close)="showCareerModal.set(false)"></app-career-form>
+    </div>
+  </div>
+}
+
+<!-- Opportunities Modal -->
+@if (showOpportunitiesModal()) {
+  <div class="fixed inset-0 bg-black bg-opacity-75 backdrop-blur-sm flex items-center justify-center z-[100] animate-fade-in p-4" (click)="showOpportunitiesModal.set(false)">
+      <app-job-openings-list 
+        [jobOpenings]="activeJobOpenings()"
+        (close)="showOpportunitiesModal.set(false)"
+        (applyForJob)="handleApplyForJob($event)">
+      </app-job-openings-list>
+  </div>
+}

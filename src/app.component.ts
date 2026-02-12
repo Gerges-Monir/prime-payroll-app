@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { AdminDashboardComponent } from './components/admin-dashboard/admin-dashboard.component';
 import { SubAdminDashboardComponent } from './components/sub-admin-dashboard/sub-admin-dashboard.component';
 import { EmployeeDashboardComponent } from './components/employee-dashboard/employee-dashboard.component';
+import { SupervisorDashboardComponent } from './components/supervisor-dashboard/supervisor-dashboard.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './services/auth.service';
-import { DatabaseService } from './services/database.service';
 import { NotificationComponent } from './components/shared/notification/notification.component';
+import { LandingComponent } from './components/landing/landing.component';
+import { DatabaseService } from './services/database.service';
+import { ThemeService } from './services/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -17,26 +20,27 @@ import { NotificationComponent } from './components/shared/notification/notifica
     AdminDashboardComponent,
     SubAdminDashboardComponent,
     EmployeeDashboardComponent,
+    SupervisorDashboardComponent,
     LoginComponent,
     NotificationComponent,
+    LandingComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements OnInit {
   private authService = inject(AuthService);
-  private dataService = inject(DatabaseService);
+  private databaseService = inject(DatabaseService);
+  private themeService = inject(ThemeService); // Initialize theme service
   
   currentUser = this.authService.currentUser;
-  isInitializing = signal(true);
+  isInitializing = this.authService.isInitializing;
+  isConfigured = this.authService.isConfigured;
+  connectionError = this.databaseService.publicConnectionError;
+  firebaseError = this.authService.firebaseError;
+  showLogin = signal(false);
 
-  async ngOnInit() {
-    try {
-      await this.dataService.initialize();
-    } catch (error) {
-      console.error("Failed to initialize data service", error);
-      // Optionally show an error message to the user
-    } finally {
-      this.isInitializing.set(false);
-    }
+  ngOnInit() {
+    // Initialization is now handled by the AuthService constructor
+    // to check the user's auth state as soon as the app loads.
   }
 }
